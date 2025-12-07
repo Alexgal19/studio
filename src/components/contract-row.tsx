@@ -65,6 +65,9 @@ export function ContractRow({
               disabled={{ after: contract.endDate }}
               initialFocus
               locale={pl}
+              fromYear={new Date().getFullYear() - 5}
+              toYear={new Date().getFullYear() + 5}
+              captionLayout="dropdown-buttons"
             />
           </PopoverContent>
         </Popover>
@@ -95,6 +98,9 @@ export function ContractRow({
               disabled={{ before: contract.startDate }}
               initialFocus
               locale={pl}
+              fromYear={new Date().getFullYear() - 5}
+              toYear={new Date().getFullYear() + 5}
+              captionLayout="dropdown-buttons"
             />
           </PopoverContent>
         </Popover>
