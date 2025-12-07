@@ -3,7 +3,6 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker, DropdownProps } from "react-day-picker"
-import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -23,10 +22,6 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
-  const handleMonthChange = (date: Date) => {
-    // Implement your month change logic here
-  };
-
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -91,7 +86,7 @@ function Calendar({
                 <SelectValue>{selected?.props?.children}</SelectValue>
               </SelectTrigger>
               <SelectContent position="popper">
-                <div className="max-h-48 overflow-y-auto">
+                <ScrollArea className="h-48">
                   {options.map((option, id: number) => (
                     <SelectItem
                       key={`${option.props.value}-${id}`}
@@ -100,7 +95,7 @@ function Calendar({
                       {option.props.children}
                     </SelectItem>
                   ))}
-                </div>
+                </ScrollArea>
               </SelectContent>
             </Select>
           )
