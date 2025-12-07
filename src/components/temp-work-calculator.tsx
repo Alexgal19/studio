@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import type { Person } from "@/lib/types";
 import { PersonCard } from "./person-card";
 import { Button } from "@/components/ui/button";
@@ -28,30 +28,17 @@ export function TempWorkCalculator() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [limitInDays, setLimitInDays] = useState<number>(548);
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isAppInstalled, setIsAppInstalled] = useState(false);
-  const [showInstallButton, setShowInstallButton] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPromptEvent(event as BeforeInstallPromptEvent);
-      if (!window.matchMedia('(display-mode: standalone)').matches) {
-        setShowInstallButton(true);
-      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsAppInstalled(true);
-      setShowInstallButton(false);
-    }
-    
-    // Check for appinstalled event
     const handleAppInstalled = () => {
-      setIsAppInstalled(true);
-      setShowInstallButton(false);
       setInstallPromptEvent(null);
     };
 
@@ -110,7 +97,6 @@ export function TempWorkCalculator() {
       });
     }
     setInstallPromptEvent(null);
-    setShowInstallButton(false);
   };
 
   return (
@@ -119,7 +105,7 @@ export function TempWorkCalculator() {
         <Button onClick={addPerson}>
           <Plus className="mr-2" />+ Dodaj Osobę
         </Button>
-        {showInstallButton && !isAppInstalled && (
+        {installPromptEvent && (
           <Button variant="secondary" onClick={installApp}>
             <Download className="mr-2" />
             Zainstaluj aplikację
