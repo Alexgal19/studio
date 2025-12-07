@@ -28,6 +28,7 @@ export function TempWorkCalculator() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [limitInDays, setLimitInDays] = useState<number>(548);
   const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,6 +36,10 @@ export function TempWorkCalculator() {
       event.preventDefault();
       setInstallPromptEvent(event as BeforeInstallPromptEvent);
     };
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
@@ -76,7 +81,8 @@ export function TempWorkCalculator() {
     if (!installPromptEvent) {
       toast({
         title: "Instalacja",
-        description: "Aplikacja jest już zainstalowana lub nie można jej zainstalować na tym urządzeniu.",
+        description: "Aplikacji nie można zainstalować na tym urządzeniu lub w tej przeglądarce.",
+        variant: "destructive"
       });
       return;
     }
@@ -87,6 +93,7 @@ export function TempWorkCalculator() {
         title: "Sukces!",
         description: "Aplikacja została pomyślnie zainstalowana.",
       });
+      setIsAppInstalled(true);
     }
     setInstallPromptEvent(null);
   };
@@ -97,7 +104,7 @@ export function TempWorkCalculator() {
         <Button onClick={addPerson}>
           <Plus className="mr-2" />+ Dodaj Osobę
         </Button>
-        {installPromptEvent && (
+        {!isAppInstalled && (
           <Button variant="secondary" onClick={installApp}>
             <Download className="mr-2" />
             Zainstaluj aplikację
