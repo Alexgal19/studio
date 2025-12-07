@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: 'TempWork Limit Calculator',
   description: 'Kalkulator Limitu Pracy Tymczasowej 18/36',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/icons/icon-192x192.png',
+  },
 };
 
 export default function RootLayout({

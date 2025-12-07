@@ -38,15 +38,8 @@ export function TempWorkCalculator() {
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    const handleAppInstalled = () => {
-      setInstallPromptEvent(null);
-    };
-
-    window.addEventListener('appinstalled', handleAppInstalled);
-
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
