@@ -1,7 +1,11 @@
 {
-  "name": "Kalkulator Limitu Pracy Tymczasowej",
-  "short_name": "Kalkulator P.T.",
+  "name": "TempWork Limit Calculator",
+  "short_name": "TempWorkCalc",
   "description": "Kalkulator Limitu Pracy Tymczasowej 18/36",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5ea162",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
@@ -13,10 +17,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "theme_color": "#5ea162",
-  "background_color": "#ffffff",
-  "start_url": "/",
-  "display": "standalone",
-  "orientation": "portrait"
+  ]
 }

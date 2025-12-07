@@ -110,44 +110,43 @@ export function TempWorkCalculator() {
               value={String(limitInDays)}
               onValueChange={(value) => setLimitInDays(Number(value))}
             >
-              <SelectTrigger className="w-[120px]" id="limitDays">
+              <SelectTrigger id="limitDays" className="w-[120px]">
                 <SelectValue placeholder="Limit" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="548">548 dni</SelectItem>
-                <SelectItem value="540">540 dni</SelectItem>
+                <SelectItem value="365">365 dni</SelectItem>
               </SelectContent>
             </Select>
         </div>
         {persons.length > 0 && (
-            <Button variant="destructive" onClick={clearAll}>
-                <Trash2 className="mr-2" />
-                Wyczyść wszystko
-            </Button>
+          <Button variant="destructive" onClick={clearAll}>
+            <Trash2 className="mr-2" /> Wyczyść wszystko
+          </Button>
         )}
       </div>
 
-      <div className="space-y-6">
-        <AnimatePresence>
-            {persons.map((person) => (
-              <motion.div
-                key={person.id}
-                layout
-                initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.98 }}
-                transition={{ duration: 0.3 }}
-              >
-                <PersonCard
-                    person={person}
-                    updatePerson={updatePerson}
-                    removePerson={removePerson}
-                    limitInDays={limitInDays}
-                />
-              </motion.div>
-            ))}
-        </AnimatePresence>
-      </div>
+      <AnimatePresence>
+        <div className="grid gap-6 md:grid-cols-1">
+          {persons.map((person) => (
+             <motion.div
+              key={person.id}
+              layout
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <PersonCard
+                person={person}
+                updatePerson={updatePerson}
+                removePerson={removePerson}
+                limitInDays={limitInDays}
+              />
+            </motion.div>
+          ))}
+        </div>
+      </AnimatePresence>
     </div>
   );
 }
