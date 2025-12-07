@@ -40,41 +40,42 @@ export const usePWAInstaller = () => {
 export const PWAInstaller = ({ children }: { children: React.ReactNode }) => {
     const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
-    const updateInstallPrompt = useCallback(() => {
-        setInstallPrompt(window.pwaInstallHandler?.event || null);
+    const handleInstallPrompt = useCallback((e: Event) => {
+        e.preventDefault();
+        // Stash the event so it can be triggered later.
+        setInstallPrompt(e as BeforeInstallPromptEvent);
+        // Update the global handler for other potential uses, though direct state is better.
+        if (window.pwaInstallHandler) {
+          window.pwaInstallHandler.event = e as BeforeInstallPromptEvent;
+        }
     }, []);
 
-    useEffect(() => {
-        // Check immediately on mount in case the event has already fired
-        updateInstallPrompt();
 
-        // Listen for our custom event which is dispatched from the script in layout.tsx
-        window.addEventListener('pwa-install-ready', updateInstallPrompt);
+    useEffect(() => {
+        window.addEventListener('beforeinstallprompt', handleInstallPrompt);
 
         // Also listen for the appinstalled event to clear the prompt
         window.addEventListener('appinstalled', () => {
+            setInstallPrompt(null);
             if (window.pwaInstallHandler) {
               window.pwaInstallHandler.event = undefined;
             }
-            updateInstallPrompt();
         });
 
         return () => {
-            window.removeEventListener('pwa-install-ready', updateInstallPrompt);
+            window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
         };
-    }, [updateInstallPrompt]);
+    }, [handleInstallPrompt]);
 
     const handleInstallClick = () => {
-        const promptEvent = window.pwaInstallHandler?.event;
-        if (!promptEvent) return;
+        if (!installPrompt) return;
 
-        promptEvent.prompt();
-        promptEvent.userChoice.then(() => {
+        installPrompt.prompt();
+        installPrompt.userChoice.then(() => {
+            setInstallPrompt(null);
             if (window.pwaInstallHandler) {
               window.pwaInstallHandler.event = undefined;
             }
-            document.body.classList.remove('install-ready');
-            updateInstallPrompt();
         });
     };
 

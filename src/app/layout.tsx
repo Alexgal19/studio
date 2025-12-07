@@ -28,14 +28,6 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.pwaInstallHandler = {};
-              window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                window.pwaInstallHandler.event = e;
-                document.body.classList.add('install-ready');
-                window.dispatchEvent(new CustomEvent('pwa-install-ready'));
-              });
-
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                   navigator.serviceWorker.register('/sw.js').then(registration => {
