@@ -115,7 +115,7 @@ export function TempWorkCalculator() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="548">548 dni</SelectItem>
-                <SelectItem value="365">365 dni</SelectItem>
+                <SelectItem value="540">540 dni</SelectItem>
               </SelectContent>
             </Select>
         </div>
