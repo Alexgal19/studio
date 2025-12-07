@@ -31,23 +31,22 @@ export const usePWAInstaller = () => {
 export const PWAInstaller = ({ children }: { children: React.ReactNode }) => {
     const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
-    const handleInstallPrompt = useCallback((e: Event) => {
-        e.preventDefault();
-        setInstallPrompt(e as BeforeInstallPromptEvent);
-    }, []);
-
-
     useEffect(() => {
-        window.addEventListener('beforeinstallprompt', handleInstallPrompt);
+        const handleBeforeInstallPrompt = (e: Event) => {
+            e.preventDefault();
+            setInstallPrompt(e as BeforeInstallPromptEvent);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
         window.addEventListener('appinstalled', () => {
             setInstallPrompt(null);
         });
 
         return () => {
-            window.removeEventListener('beforeinstallprompt', handleInstallPrompt);
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
         };
-    }, [handleInstallPrompt]);
+    }, []);
 
     const handleInstallClick = () => {
         if (!installPrompt) return;
