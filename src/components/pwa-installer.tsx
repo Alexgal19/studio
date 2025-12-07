@@ -13,15 +13,6 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-// Extend the Window interface to include our custom property
-declare global {
-  interface Window {
-    pwaInstallHandler: {
-      event?: BeforeInstallPromptEvent;
-    };
-  }
-}
-
 interface PWAInstallerContextType {
     installPrompt: BeforeInstallPromptEvent | null;
     handleInstallClick: () => void;
@@ -42,24 +33,15 @@ export const PWAInstaller = ({ children }: { children: React.ReactNode }) => {
 
     const handleInstallPrompt = useCallback((e: Event) => {
         e.preventDefault();
-        // Stash the event so it can be triggered later.
         setInstallPrompt(e as BeforeInstallPromptEvent);
-        // Update the global handler for other potential uses, though direct state is better.
-        if (window.pwaInstallHandler) {
-          window.pwaInstallHandler.event = e as BeforeInstallPromptEvent;
-        }
     }, []);
 
 
     useEffect(() => {
         window.addEventListener('beforeinstallprompt', handleInstallPrompt);
 
-        // Also listen for the appinstalled event to clear the prompt
         window.addEventListener('appinstalled', () => {
             setInstallPrompt(null);
-            if (window.pwaInstallHandler) {
-              window.pwaInstallHandler.event = undefined;
-            }
         });
 
         return () => {
@@ -73,9 +55,6 @@ export const PWAInstaller = ({ children }: { children: React.ReactNode }) => {
         installPrompt.prompt();
         installPrompt.userChoice.then(() => {
             setInstallPrompt(null);
-            if (window.pwaInstallHandler) {
-              window.pwaInstallHandler.event = undefined;
-            }
         });
     };
 
