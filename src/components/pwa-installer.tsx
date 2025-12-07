@@ -39,23 +39,30 @@ export const PWAInstaller = ({ children }: { children: React.ReactNode }) => {
 
         window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-        window.addEventListener('appinstalled', () => {
+        const handleAppInstalled = () => {
             setInstallPrompt(null);
-        });
+        };
+        window.addEventListener('appinstalled', handleAppInstalled);
 
         return () => {
             window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+            window.removeEventListener('appinstalled', handleAppInstalled);
         };
     }, []);
 
-    const handleInstallClick = () => {
+    const handleInstallClick = useCallback(() => {
         if (!installPrompt) return;
 
         installPrompt.prompt();
-        installPrompt.userChoice.then(() => {
+        installPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the install prompt');
+            } else {
+                console.log('User dismissed the install prompt');
+            }
             setInstallPrompt(null);
         });
-    };
+    }, [installPrompt]);
 
     return (
         <PWAInstallerContext.Provider value={{ installPrompt, handleInstallClick }}>
