@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Person } from "@/lib/types";
 import { PersonCard } from "./person-card";
 import { Button } from "@/components/ui/button";
@@ -12,36 +13,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed';
-    platform: string;
-  }>;
-  prompt(): Promise<void>;
-}
+import { usePWAInstaller } from "./pwa-installer";
 
 export function TempWorkCalculator() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [limitInDays, setLimitInDays] = useState<number>(548);
-  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPromptEvent(event as BeforeInstallPromptEvent);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, []);
+  const { installPrompt, handleInstallClick } = usePWAInstaller();
 
   const addPerson = () => {
     const newPerson: Person = {
@@ -72,34 +50,14 @@ export function TempWorkCalculator() {
     setPersons([]);
   };
 
-  const installApp = async () => {
-    if (!installPromptEvent) {
-      toast({
-        title: "Instalacja",
-        description: "Aplikacji nie można zainstalować na tym urządzeniu lub w tej przeglądarce.",
-        variant: "destructive"
-      });
-      return;
-    }
-    installPromptEvent.prompt();
-    const { outcome } = await installPromptEvent.userChoice;
-    if (outcome === 'accepted') {
-      toast({
-        title: "Sukces!",
-        description: "Aplikacja została pomyślnie zainstalowana.",
-      });
-    }
-    setInstallPromptEvent(null);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-4 items-center justify-center">
         <Button onClick={addPerson}>
           <Plus className="mr-2" />+ Dodaj Osobę
         </Button>
-        {installPromptEvent && (
-          <Button variant="secondary" onClick={installApp}>
+        {installPrompt && (
+          <Button variant="secondary" onClick={handleInstallClick}>
             <Download className="mr-2" />
             Zainstaluj aplikację
           </Button>
