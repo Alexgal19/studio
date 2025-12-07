@@ -1,0 +1,21 @@
+{
+  "name": "Kalkulator Limitu Pracy Tymczasowej",
+  "short_name": "Limit PT",
+  "description": "Kalkulator Limitu Pracy Tymczasowej 18/36",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#5ea162",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

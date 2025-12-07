@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Person } from "@/lib/types";
 import { PersonCard } from "./person-card";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,33 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 export function TempWorkCalculator() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [limitInDays, setLimitInDays] = useState<number>(548);
+  const [installPromptEvent, setInstallPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPromptEvent(event as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   const addPerson = () => {
     const newPerson: Person = {
@@ -49,11 +72,23 @@ export function TempWorkCalculator() {
     setPersons([]);
   };
 
-  const installApp = () => {
-    toast({
-      title: "Instalacja",
-      description: "Funkcja instalacji aplikacji jest w trakcie rozwoju. Wkrótce będzie dostępna!",
-    });
+  const installApp = async () => {
+    if (!installPromptEvent) {
+      toast({
+        title: "Instalacja",
+        description: "Aplikacja jest już zainstalowana lub nie można jej zainstalować na tym urządzeniu.",
+      });
+      return;
+    }
+    installPromptEvent.prompt();
+    const { outcome } = await installPromptEvent.userChoice;
+    if (outcome === 'accepted') {
+      toast({
+        title: "Sukces!",
+        description: "Aplikacja została pomyślnie zainstalowana.",
+      });
+    }
+    setInstallPromptEvent(null);
   };
 
   return (
@@ -62,10 +97,12 @@ export function TempWorkCalculator() {
         <Button onClick={addPerson}>
           <Plus className="mr-2" />+ Dodaj Osobę
         </Button>
-        <Button variant="secondary" onClick={installApp}>
-          <Download className="mr-2" />
-          Zainstaluj aplikację
-        </Button>
+        {installPromptEvent && (
+          <Button variant="secondary" onClick={installApp}>
+            <Download className="mr-2" />
+            Zainstaluj aplikację
+          </Button>
+        )}
         <div className="flex items-center gap-2">
            <label htmlFor="limitDays" className="text-sm font-medium">Wybierz limit dni:</label>
            <Select
