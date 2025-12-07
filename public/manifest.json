@@ -1,6 +1,6 @@
 {
   "name": "TempWork Limit Calculator",
-  "short_name": "TempWorkCalc",
+  "short_name": "TempWork Calc",
   "description": "Kalkulator Limitu Pracy Tymczasowej 18/36",
   "start_url": "/",
   "display": "standalone",
