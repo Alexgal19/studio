@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Person } from "@/lib/types";
 import { PersonCard } from "./person-card";
 import { Button } from "@/components/ui/button";
@@ -20,20 +19,27 @@ export function TempWorkCalculator() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [limitInDays, setLimitInDays] = useState<number>(548);
   const { installPrompt, handleInstallClick } = usePWAInstaller();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const addPerson = () => {
-    const newPerson: Person = {
-      id: crypto.randomUUID(),
-      fullName: "",
-      contracts: [
-        {
-          id: crypto.randomUUID(),
-          startDate: undefined,
-          endDate: undefined,
-        },
-      ],
-    };
-    setPersons([...persons, newPerson]);
+    if (isClient) {
+      const newPerson: Person = {
+        id: crypto.randomUUID(),
+        fullName: "",
+        contracts: [
+          {
+            id: crypto.randomUUID(),
+            startDate: undefined,
+            endDate: undefined,
+          },
+        ],
+      };
+      setPersons([...persons, newPerson]);
+    }
   };
 
   const updatePerson = (updatedPerson: Person) => {
