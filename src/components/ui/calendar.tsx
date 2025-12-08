@@ -3,7 +3,6 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker, DropdownProps } from "react-day-picker"
-import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -64,12 +63,10 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Dropdown: ({ value, onChange, ...props }: DropdownProps) => {
-          const options = props.options;
-          const selected = options?.find(
-            (option) =>
-              typeof option.value === "string" && option.value === value
-          );
+        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+        IconRight: () => <ChevronRight className="h-4 w-4" />,
+        Dropdown: ({ value, onChange, options }: DropdownProps) => {
+          const selected = options.find((option) => option.value === value);
           const handleChange = (value: string) => {
             const changeEvent = {
               target: { value },
@@ -88,7 +85,7 @@ function Calendar({
               </SelectTrigger>
               <SelectContent position="popper">
                 <ScrollArea className="h-80">
-                  {options?.map((option, id: number) => (
+                  {options.map((option, id: number) => (
                     <SelectItem
                       key={`${option.value}-${id}`}
                       value={option.value?.toString() ?? ""}
