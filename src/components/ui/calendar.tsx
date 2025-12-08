@@ -84,7 +84,7 @@ function Calendar({
               }}
             >
               <SelectTrigger className="pr-1.5 focus:ring-0">
-                <SelectValue>{selected?.caption}</SelectValue>
+                <SelectValue>{selected?.label}</SelectValue>
               </SelectTrigger>
               <SelectContent position="popper">
                 <ScrollArea className="h-80">
@@ -93,7 +93,7 @@ function Calendar({
                       key={`${option.value}-${id}`}
                       value={option.value?.toString() ?? ""}
                     >
-                      {option.caption}
+                      {option.label}
                     </SelectItem>
                   ))}
                 </ScrollArea>
