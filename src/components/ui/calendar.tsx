@@ -64,46 +64,47 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Dropdown: ({ value, onChange, children, ...props }: DropdownProps) => {
-          const options = React.Children.toArray(
-            children
-          ) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[]
-          const selected = options.find((child) => child.props.value === value)
+        Dropdown: ({ value, onChange, ...props }: DropdownProps) => {
+          const options = props.options;
+          const selected = options?.find(
+            (option) =>
+              typeof option.value === "string" && option.value === value
+          );
           const handleChange = (value: string) => {
             const changeEvent = {
               target: { value },
-            } as React.ChangeEvent<HTMLSelectElement>
-            onChange?.(changeEvent)
-          }
+            } as React.ChangeEvent<HTMLSelectElement>;
+            onChange?.(changeEvent);
+          };
           return (
             <Select
               value={value?.toString()}
               onValueChange={(value) => {
-                handleChange(value)
+                handleChange(value);
               }}
             >
               <SelectTrigger className="pr-1.5 focus:ring-0">
-                <SelectValue>{selected?.props?.children}</SelectValue>
+                <SelectValue>{selected?.caption}</SelectValue>
               </SelectTrigger>
               <SelectContent position="popper">
                 <ScrollArea className="h-80">
-                  {options.map((option, id: number) => (
+                  {options?.map((option, id: number) => (
                     <SelectItem
-                      key={`${option.props.value}-${id}`}
-                      value={option.props.value?.toString() ?? ""}
+                      key={`${option.value}-${id}`}
+                      value={option.value?.toString() ?? ""}
                     >
-                      {option.props.children}
+                      {option.caption}
                     </SelectItem>
                   ))}
                 </ScrollArea>
               </SelectContent>
             </Select>
-          )
+          );
         },
       }}
       {...props}
     />
-  )
+  );
 }
 Calendar.displayName = "Calendar"
 
