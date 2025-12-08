@@ -5,6 +5,16 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "appAssociation": "AUTO",
+    "rewrites": [
+      {
+        "source": "**",
+        "apphosting": {
+          "backendId": "tempwork-limit-calculator",
+          "region": "us-central1"
+        }
+      }
     ]
   }
 }
