@@ -1,7 +1,7 @@
 "use client";
 
 import type { Person, Contract } from "@/lib/types";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ContractRow } from "./contract-row";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,17 +37,25 @@ export function PersonCard({
   removePerson,
   limitInDays,
 }: PersonCardProps) {
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
   };
 
   const addContract = () => {
-    const newContract: Contract = {
-      id: crypto.randomUUID(),
-      startDate: undefined,
-      endDate: undefined,
-    };
-    updatePerson({ ...person, contracts: [...person.contracts, newContract] });
+    if (typeof window !== 'undefined') {
+        const newContract: Contract = {
+        id: crypto.randomUUID(),
+        startDate: undefined,
+        endDate: undefined,
+        };
+        updatePerson({ ...person, contracts: [...person.contracts, newContract] });
+    }
   };
 
   const updateContract = (updatedContract: Contract) => {
@@ -72,6 +80,10 @@ export function PersonCard({
     const remainingDays = limitInDays - totalDaysUsed;
     return { totalDaysUsed, remainingDays };
   }, [person.contracts, limitInDays]);
+
+  if (!isClient) {
+    return <div>Ładowanie...</div>;
+  }
 
   return (
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
