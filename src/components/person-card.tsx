@@ -42,6 +42,11 @@ export function PersonCard({
   const { t, ready } = useTranslation();
   const [totalDaysUsed, setTotalDaysUsed] = useState<number | null>(null);
   const [remainingDays, setRemainingDays] = useState<number | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const daysUsed = person.contracts.reduce((total, contract) => {
@@ -63,12 +68,14 @@ export function PersonCard({
   };
 
   const addContract = () => {
-    const newContract: Contract = {
-      id: crypto.randomUUID(),
-      startDate: new Date(),
-      endDate: new Date(),
-    };
-    updatePerson({ ...person, contracts: [...person.contracts, newContract] });
+    if (isClient) {
+      const newContract: Contract = {
+        id: crypto.randomUUID(),
+        startDate: new Date(),
+        endDate: new Date(),
+      };
+      updatePerson({ ...person, contracts: [...person.contracts, newContract] });
+    }
   };
 
   const updateContract = (updatedContract: Contract) => {
