@@ -120,7 +120,6 @@ export function PersonCard({
             <AnimatePresence>
               {person.contracts.map((contract) => (
                 <motion.tr
-                  as={TableRow}
                   key={contract.id}
                   layout
                   initial={{ opacity: 0 }}
