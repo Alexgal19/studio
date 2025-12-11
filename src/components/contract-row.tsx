@@ -1,9 +1,10 @@
+
 "use client";
 
 import type { Contract } from "@/lib/types";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { TableCell, TableRow } from "@/components/ui/table";
+import { TableCell } from "@/components/ui/table";
 import { Trash2, CalendarIcon } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { Input } from "@/components/ui/input";
@@ -54,7 +55,7 @@ export function ContractRow({
   }, [contract.startDate, contract.endDate]);
 
   return (
-    <TableRow>
+    <React.Fragment>
       <TableCell>
         <Popover>
           <PopoverTrigger asChild>
@@ -114,6 +115,6 @@ export function ContractRow({
           <span className="sr-only">Usuń okres</span>
         </Button>
       </TableCell>
-    </TableRow>
+    </React.Fragment>
   );
 }
