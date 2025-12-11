@@ -8,40 +8,9 @@ import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 
-function CustomToolbar() {
-  const { goToMonth, nextMonth, previousMonth } = useNavigation()
-  const { currentMonth } = useDayPicker()
-
-  return (
-    <>
-      <div className="flex items-center justify-between col-span-full">
-        <button
-          type="button"
-          disabled={!previousMonth}
-          onClick={() => previousMonth && goToMonth(previousMonth)}
-          className="p-1.5 rounded-md hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <div className="text-lg font-bold">
-          {currentMonth && isValid(currentMonth) ? format(currentMonth, "LLLL yyyy", { locale: pl }) : '...'}
-        </div>
-        <button
-          type="button"
-          disabled={!nextMonth}
-          onClick={() => nextMonth && goToMonth(nextMonth)}
-          className="p-1.5 rounded-md hover:bg-accent hover:text-accent-foreground disabled:opacity-50"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
-    </>
-  )
-}
-
 function CustomDay(props: { date: Date }) {
   if (!props.date || !isValid(props.date)) {
-    return <div className="h-10 w-10"></div>;
+    return <></>;
   }
     
   const { currentMonth } = useDayPicker()
@@ -72,7 +41,7 @@ function Calendar({ className, ...props }: React.ComponentProps<typeof DayPicker
         day_disabled: "text-muted-foreground opacity-50",
       }}
       components={{
-        Toolbar: CustomToolbar,
+        Toolbar: () => null, // Hide default toolbar
         Day: ({ date }) => <CustomDay date={date} />,
       }}
       {...props}
