@@ -1,7 +1,7 @@
 "use client";
 
 import type { Contract } from "@/lib/types";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -26,6 +26,12 @@ export function ContractRow({
   updateContract,
   removeContract,
 }: ContractRowProps) {
+
+  useEffect(() => {
+    // DIAGNOSTIC ALERT: This will trigger if the component is correctly loaded.
+    alert("DIAGNOSTIC: contract-row.tsx HAS BEEN LOADED. If you see this, the problem is likely cache or the calendar file itself.");
+  }, []);
+
   const handleDateChange = (date: Date | undefined, field: "startDate" | "endDate") => {
     updateContract({ ...contract, [field]: date });
   };
@@ -40,6 +46,7 @@ export function ContractRow({
   return (
     <>
       <TableCell>
+        <div className="bg-red-500 text-white p-1 font-bold">DIAGNOSTIC TEST ACTIVE</div>
         <Popover>
           <PopoverTrigger asChild>
             <Button
