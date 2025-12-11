@@ -23,13 +23,22 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
-        months: "space-y-4",
+        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        
-        table: 'border-collapse w-full',
-        head_row: 'flex',
-        head_cell: 'text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]',
-        row: 'flex w-full mt-2',
+        caption: "flex justify-center pt-1 relative items-center",
+        caption_label: "text-lg font-bold",
+        nav: "space-x-1 flex items-center",
+        nav_button: cn(
+          buttonVariants({ variant: "outline" }),
+          "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+        ),
+        nav_button_previous: "absolute left-1",
+        nav_button_next: "absolute right-1",
+        table: "w-full border-collapse space-y-1",
+        head_row: "flex",
+        head_cell:
+          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+        row: "flex w-full mt-2",
         cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
@@ -46,51 +55,55 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Months: ({ ...monthsProps }) => {
-            const { goToMonth, nextMonth, previousMonth } = useNavigation();
-            const { currentMonth } = useDayPicker();
+        Months: () => {
+          const { goToMonth, nextMonth, previousMonth } = useNavigation();
+          const { currentMonth } = useDayPicker();
 
-            const weekdays = ["pon", "wto", "śro", "czw", "pią", "sob", "nie"];
+          const weekdays = ["pon", "wto", "śro", "czw", "pią", "sob", "nie"];
 
-            return (
-                <div className="grid grid-cols-[auto_1fr] gap-x-4">
-                    {/* Left Column for Navigation */}
-                    <div className="flex flex-col justify-center items-center gap-4">
-                         <button
-                            type="button"
-                            disabled={!previousMonth}
-                            onClick={() => previousMonth && goToMonth(previousMonth)}
-                            className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-7 w-7")}
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            disabled={!nextMonth}
-                            onClick={() => nextMonth && goToMonth(nextMonth)}
-                             className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-7 w-7")}
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                        </button>
-                    </div>
+          return (
+            <div className="grid grid-cols-[auto_1fr] gap-x-4">
+              <div className="flex flex-col justify-center items-center gap-4">
+                <button
+                  type="button"
+                  disabled={!previousMonth}
+                  onClick={() => previousMonth && goToMonth(previousMonth)}
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "icon" }),
+                    "h-7 w-7 rounded-md"
+                  )}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  disabled={!nextMonth}
+                  onClick={() => nextMonth && goToMonth(nextMonth)}
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "icon" }),
+                    "h-7 w-7 rounded-md"
+                  )}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
 
-                    {/* Right Column for Calendar Grid */}
-                    <div className="grid grid-cols-7 gap-1">
-                        <div className="col-span-7 text-lg font-bold">
-                            {currentMonth && format(currentMonth, "LLLL yyyy", { locale: pl })}
-                        </div>
+              <div className="grid grid-cols-1">
+                <div className="grid grid-cols-7 gap-1">
+                  <div className="col-span-7 text-lg font-bold text-center">
+                    {currentMonth &&
+                      format(currentMonth, "LLLL yyyy", { locale: pl })}
+                  </div>
 
-                        {/* Custom Weekday Headers */}
-                        <div className="font-bold text-center">{weekdays[0]}</div>
-                        <div className="col-span-6 grid grid-cols-6 text-center font-bold">
-                            {weekdays.slice(1).map((day, i) => <div key={i}>{day}</div>)}
-                        </div>
-
-                        {/* Days rendered by DayPicker's internal logic */}
-                        {monthsProps.children}
-                    </div>
+                  <div className="font-bold text-center">{weekdays[0]}</div>
+                  <div className="col-span-6 text-center font-bold">
+                    {weekdays.slice(1).join(" ")}
+                  </div>
                 </div>
-            );
+                {props.children}
+              </div>
+            </div>
+          );
         },
       }}
       locale={pl}
