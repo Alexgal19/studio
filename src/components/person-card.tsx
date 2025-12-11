@@ -74,7 +74,11 @@ export function PersonCard({
   const { totalDaysUsed, remainingDays } = useMemo(() => {
     const totalDaysUsed = person.contracts.reduce((total, contract) => {
       if (contract.startDate && contract.endDate) {
-        return total + differenceInCalendarDays(contract.endDate, contract.startDate) + 1;
+        const start = new Date(contract.startDate);
+        const end = new Date(contract.endDate);
+        if(!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
+            return total + differenceInCalendarDays(end, start) + 1;
+        }
       }
       return total;
     }, 0);
@@ -116,6 +120,7 @@ export function PersonCard({
             <AnimatePresence>
               {person.contracts.map((contract) => (
                 <motion.tr
+                  as={TableRow}
                   key={contract.id}
                   layout
                   initial={{ opacity: 0 }}
