@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -69,27 +68,27 @@ function Calendar({
       components={{
         IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
-        Dropdown: ({ ...props }) => {
+        Dropdown: (dropdownProps) => {
           const { fromDate, toDate, fromMonth, toMonth, fromYear, toYear } = useDayPicker();
-          const { goToMonth, month, year } = useNavigation();
-
-          if (props.name === "months") {
-            const months = Array.from({ length: 12 }, (_, i) => i);
+          const { goToMonth, month } = useNavigation();
+          
+          if (dropdownProps.name === "months") {
+            const months = Array.from({ length: 12 }, (_, i) => new Date(new Date().getFullYear(), i, 1));
             return (
               <Select
                 value={month?.getMonth().toString()}
                 onValueChange={(value) => {
-                  const newDate = new Date(year || new Date().getFullYear(), parseInt(value));
+                  const newDate = new Date(month?.getFullYear() || new Date().getFullYear(), parseInt(value));
                   goToMonth(newDate);
                 }}
               >
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue placeholder="Miesiąc" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Miesiąc" >{format(month || new Date(), "LLLL", { locale: pl })}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {months.map((m) => (
-                    <SelectItem key={m} value={m.toString()}>
-                      {format(new Date(new Date().getFullYear(), m, 1), "LLLL", { locale: pl })}
+                  {months.map((m, i) => (
+                    <SelectItem key={i} value={i.toString()}>
+                      {format(m, "LLLL", { locale: pl })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -97,21 +96,21 @@ function Calendar({
             );
           }
           
-          if (props.name === "years") {
+          if (dropdownProps.name === "years") {
             const startYear = fromYear || new Date().getFullYear() - 100;
             const endYear = toYear || new Date().getFullYear() + 10;
             const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
             
             return (
               <Select
-                value={year?.toString()}
+                value={month?.getFullYear().toString()}
                 onValueChange={(value) => {
                   const newDate = new Date(parseInt(value), month?.getMonth() || 0);
                   goToMonth(newDate);
                 }}
               >
-                <SelectTrigger className="w-[80px]">
-                  <SelectValue placeholder="Rok" />
+                <SelectTrigger>
+                  <SelectValue placeholder="Rok">{month?.getFullYear()}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {years.map((y) => (
