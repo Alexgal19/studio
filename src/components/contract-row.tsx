@@ -3,7 +3,7 @@
 import type { Contract } from "@/lib/types";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+// import { Calendar } from "@/components/ui/calendar"; // Celowo usunięty import
 import {
   Popover,
   PopoverContent,
@@ -59,7 +59,7 @@ export function ContractRow({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
-            <Calendar
+            {/* <Calendar
               mode="single"
               selected={contract.startDate}
               onSelect={(date) => handleDateChange(date, "startDate")}
@@ -69,7 +69,7 @@ export function ContractRow({
               captionLayout="dropdown-buttons"
               fromYear={new Date().getFullYear() - 10}
               toYear={new Date().getFullYear() + 10}
-            />
+            /> */}
           </PopoverContent>
         </Popover>
       </TableCell>
@@ -92,7 +92,7 @@ export function ContractRow({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
-            <Calendar
+            {/* <Calendar
               mode="single"
               selected={contract.endDate}
               onSelect={(date) => handleDateChange(date, "endDate")}
@@ -102,7 +102,7 @@ export function ContractRow({
               captionLayout="dropdown-buttons"
               fromYear={new Date().getFullYear() - 10}
               toYear={new Date().getFullYear() + 10}
-            />
+            /> */}
           </PopoverContent>
         </Popover>
       </TableCell>
