@@ -1,20 +1,12 @@
 
+"use client";
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from '@/components/pwa-installer';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
-
-export const metadata: Metadata = {
-  title: 'TempWork Limit Calculator',
-  description: 'Kalkulator Limitu Pracy Tymczasowej 18/36',
-  manifest: '/manifest.json',
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/icons/icon-192x192.png',
-  },
-};
 
 export default function RootLayout({
   children,
@@ -24,6 +16,11 @@ export default function RootLayout({
   return (
     <html lang="pl">
       <head>
+        <title>TempWork Limit Calculator</title>
+        <meta name="description" content="Kalkulator Limitu Pracy Tymczasowej 18/36" />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
