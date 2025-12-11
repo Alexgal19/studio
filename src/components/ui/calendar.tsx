@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, useDayPicker, useNavigation } from "react-day-picker"
-import { format } from "date-fns"
+import { DayPicker, useDayPicker, useNavigation, type DropdownProps } from "react-day-picker"
+import { format, getYear } from "date-fns"
 import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
@@ -18,6 +18,79 @@ import {
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
+/**
+ * Komponent Dropdown obsługujący wybór miesiąca i roku.
+ * Został wyciągnięty z głównego komponentu dla czystości kodu.
+ */
+function CalendarDropdown(props: DropdownProps) {
+  const { fromYear, toYear } = useDayPicker()
+  const { goToMonth, month } = useNavigation()
+  
+  // Zabezpieczenie: jeśli month jest undefined, użyj obecnej daty
+  const currentMonth = month || new Date()
+
+  if (props.name === "months") {
+    const months = Array.from({ length: 12 }, (_, i) => 
+      new Date(currentMonth.getFullYear(), i, 1)
+    )
+
+    return (
+      <Select
+        value={currentMonth.getMonth().toString()}
+        onValueChange={(value) => {
+          const newDate = new Date(currentMonth.getFullYear(), parseInt(value))
+          goToMonth(newDate)
+        }}
+      >
+        <SelectTrigger className="h-8 w-[130px] text-sm font-medium capitalize">
+          <SelectValue>{format(currentMonth, "LLLL", { locale: pl })}</SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {months.map((m, i) => (
+            <SelectItem key={i} value={i.toString()} className="capitalize">
+              {format(m, "LLLL", { locale: pl })}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    )
+  }
+
+  if (props.name === "years") {
+    const earliestYear = fromYear || getYear(new Date()) - 20
+    const latestYear = toYear || getYear(new Date()) + 20
+    
+    // Tworzymy tablicę lat
+    const years = Array.from(
+      { length: latestYear - earliestYear + 1 },
+      (_, i) => earliestYear + i
+    )
+
+    return (
+      <Select
+        value={currentMonth.getFullYear().toString()}
+        onValueChange={(value) => {
+          const newDate = new Date(parseInt(value), currentMonth.getMonth())
+          goToMonth(newDate)
+        }}
+      >
+        <SelectTrigger className="h-8 w-[80px] text-sm font-medium">
+          <SelectValue>{currentMonth.getFullYear()}</SelectValue>
+        </SelectTrigger>
+        <SelectContent className="max-h-[300px]">
+          {years.map((y) => (
+            <SelectItem key={y} value={y.toString()}>
+              {y}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    )
+  }
+
+  return null
+}
+
 function Calendar({
   className,
   classNames,
@@ -28,34 +101,35 @@ function Calendar({
     <DayPicker
       locale={pl}
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-4 bg-background rounded-xl border shadow-sm", className)} // Dodano border i shadow do kontenera
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium hidden",
-        caption_dropdowns: "flex justify-center gap-2",
-        nav: "space-x-1 flex items-center",
+        caption: "flex justify-center pt-1 relative items-center gap-2", // Gap dla odstępu między dropdownami
+        caption_label: "hidden", // Ukrywamy domyślny tekst, bo mamy Dropdowny
+        caption_dropdowns: "flex justify-center gap-2 w-full",
+        
+        // Ukrywamy standardowe strzałki nawigacji, ponieważ używamy Selectów
+        nav: "hidden", 
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
           "h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
         ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
+        
         table: "w-full border-collapse space-y-1",
-        head_row: "flex",
+        head_row: "flex mb-2",
         head_cell:
-          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+          "text-muted-foreground rounded-md w-9 font-medium text-[0.75rem] uppercase tracking-wider", // Nowoczesny styl nagłówków dni
         row: "flex w-full mt-2",
         cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+          "h-9 w-9 p-0 font-normal aria-selected:opacity-100 rounded-full" // KLUCZOWE: rounded-full dla kółek
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        day_today: "bg-accent text-accent-foreground",
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-full", // KLUCZOWE: rounded-full dla wybranego
+        day_today: "bg-accent text-accent-foreground font-semibold",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         day_disabled: "text-muted-foreground opacity-50",
@@ -67,63 +141,7 @@ function Calendar({
       components={{
         IconLeft: () => <ChevronLeft className="h-4 w-4" />,
         IconRight: () => <ChevronRight className="h-4 w-4" />,
-        Dropdown: (dropdownProps) => {
-          const { fromDate, toDate, fromMonth, toMonth, fromYear, toYear } = useDayPicker();
-          const { goToMonth, month } = useNavigation();
-          
-          if (dropdownProps.name === "months") {
-            const months = Array.from({ length: 12 }, (_, i) => new Date(new Date().getFullYear(), i, 1));
-            return (
-              <Select
-                value={month?.getMonth().toString()}
-                onValueChange={(value) => {
-                  const newDate = new Date(month?.getFullYear() || new Date().getFullYear(), parseInt(value));
-                  goToMonth(newDate);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Miesiąc" >{format(month || new Date(), "LLLL", { locale: pl })}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((m, i) => (
-                    <SelectItem key={i} value={i.toString()}>
-                      {format(m, "LLLL", { locale: pl })}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            );
-          }
-          
-          if (dropdownProps.name === "years") {
-            const startYear = fromYear || new Date().getFullYear() - 100;
-            const endYear = toYear || new Date().getFullYear() + 10;
-            const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
-            
-            return (
-              <Select
-                value={month?.getFullYear().toString()}
-                onValueChange={(value) => {
-                  const newDate = new Date(parseInt(value), month?.getMonth() || 0);
-                  goToMonth(newDate);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Rok">{month?.getFullYear()}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map((y) => (
-                    <SelectItem key={y} value={y.toString()}>
-                      {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            );
-          }
-
-          return null;
-        },
+        Dropdown: CalendarDropdown, // Podpięcie naszego nowoczesnego dropdowna
       }}
       {...props}
     />
