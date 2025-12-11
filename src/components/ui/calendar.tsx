@@ -22,6 +22,10 @@ function CustomCaption() {
   const { goToMonth, nextMonth, previousMonth } = useNavigation();
   const { currentMonth } = useDayPicker();
 
+  if (!currentMonth) {
+    return null;
+  }
+
   const handleYearChange = (value: string) => {
     const newDate = new Date(currentMonth);
     newDate.setFullYear(parseInt(value, 10));
