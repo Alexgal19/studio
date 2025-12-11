@@ -66,7 +66,7 @@ function Calendar({
                 
                 {/* Custom Month/Year header */}
                 <div className="col-start-2 text-lg font-medium text-center">
-                   {format(months[0].month, "LLLL yyyy", { locale: pl })}
+                   {months[0]?.month && format(months[0].month, "LLLL yyyy", { locale: pl })}
                 </div>
 
                 {/* Custom Weekday headers */}
