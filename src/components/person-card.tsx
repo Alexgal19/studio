@@ -38,25 +38,17 @@ export function PersonCard({
   removePerson,
   limitInDays,
 }: PersonCardProps) {
-    const [isClient, setIsClient] = useState(false);
-
-    useEffect(() => {
-        setIsClient(true);
-    }, []);
-
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
   };
 
   const addContract = () => {
-    if (isClient) {
-        const newContract: Contract = {
-        id: crypto.randomUUID(),
-        startDate: new Date(),
-        endDate: new Date(),
-        };
-        updatePerson({ ...person, contracts: [...person.contracts, newContract] });
-    }
+    const newContract: Contract = {
+      id: crypto.randomUUID(),
+      startDate: new Date(),
+      endDate: new Date(),
+    };
+    updatePerson({ ...person, contracts: [...person.contracts, newContract] });
   };
 
   const updateContract = (updatedContract: Contract) => {
@@ -85,10 +77,6 @@ export function PersonCard({
     const remainingDays = limitInDays - totalDaysUsed;
     return { totalDaysUsed, remainingDays };
   }, [person.contracts, limitInDays]);
-
-  if (!isClient) {
-    return <Card className="overflow-hidden shadow-lg p-6">Ładowanie...</Card>;
-  }
 
   return (
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
