@@ -41,7 +41,7 @@ function CustomToolbar() {
 
 function CustomDay(props: { date: Date }) {
   const { currentMonth } = useDayPicker()
-  const isOutside = props.date.getMonth() !== currentMonth.getMonth()
+  const isOutside = currentMonth ? props.date.getMonth() !== currentMonth.getMonth() : false
 
   return (
     <div
