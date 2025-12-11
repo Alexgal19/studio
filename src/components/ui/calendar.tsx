@@ -3,105 +3,12 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, useDayPicker, useNavigation } from "react-day-picker"
+import { DayPicker } from "react-day-picker"
 import { format } from "date-fns"
 import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
-
-function CustomCaption() {
-  const { goToMonth, nextMonth, previousMonth } = useNavigation();
-  const { currentMonth } = useDayPicker();
-
-  if (!currentMonth) {
-    return null;
-  }
-
-  const handleYearChange = (value: string) => {
-    const newDate = new Date(currentMonth);
-    newDate.setFullYear(parseInt(value, 10));
-    goToMonth(newDate);
-  };
-
-  const handleMonthChange = (value: string) => {
-    const newDate = new Date(currentMonth);
-    newDate.setMonth(parseInt(value, 10));
-    goToMonth(newDate);
-  };
-  
-  const currentYear = currentMonth.getFullYear();
-  const fromYear = currentYear - 100;
-  const toYear = currentYear + 5;
-
-  const years = Array.from({ length: toYear - fromYear + 1 }, (_, i) => fromYear + i);
-  const months = Array.from({ length: 12 }, (_, i) => i);
-
-
-  return (
-    <div className="flex items-center justify-between p-1">
-       <div className="flex items-center gap-2">
-        <span className="text-sm font-bold">Miesiąc:</span>
-        <Select
-            value={currentMonth.getMonth().toString()}
-            onValueChange={handleMonthChange}
-          >
-            <SelectTrigger className="w-[120px] font-bold">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {months.map((month) => (
-                <SelectItem key={month} value={month.toString()}>
-                  {format(new Date(currentYear, month), "LLLL", { locale: pl })}
-                </SelectItem>
-              ))}
-            </SelectContent>
-        </Select>
-        <span className="text-sm font-bold ml-4">Rok:</span>
-        <Select
-            value={currentYear.toString()}
-            onValueChange={handleYearChange}
-          >
-            <SelectTrigger className="w-[90px] font-bold">
-              <SelectValue/>
-            </SelectTrigger>
-            <SelectContent>
-              {years.map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-        </Select>
-       </div>
-      <div className="flex items-center gap-2">
-        <button
-          disabled={!previousMonth}
-          onClick={() => previousMonth && goToMonth(previousMonth)}
-          className={cn(buttonVariants({ variant: "outline" }), "h-8 w-8 p-0")}
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button
-          disabled={!nextMonth}
-          onClick={() => nextMonth && goToMonth(nextMonth)}
-          className={cn(buttonVariants({ variant: "outline" }), "h-8 w-8 p-0")}
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -111,16 +18,21 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const currentYear = new Date().getFullYear();
   return (
     <DayPicker
       locale={pl}
       showOutsideDays={showOutsideDays}
       className={cn("p-3 bg-card", className)}
+      captionLayout="dropdown-buttons"
+      fromYear={currentYear - 100}
+      toYear={currentYear + 5}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "hidden", // We hide default caption and use our own
-        table: "w-full border-collapse space-y-1",
+        caption_label: "text-sm font-bold",
+        caption_dropdowns: "flex gap-2",
+        table: "w-full border-collapse space-y-1 mt-4",
         head_row: "flex mb-2",
         head_cell: "text-muted-foreground rounded-md w-9 font-bold text-center text-[0.8rem] uppercase",
         row: "flex w-full mt-2",
@@ -145,7 +57,6 @@ function Calendar({
         formatWeekdayName: (day) => format(day, "eee", { locale: pl }).slice(0, 3)
       }}
       components={{
-        Caption: CustomCaption,
         IconLeft: () => <ChevronLeft className="h-5 w-5" />,
         IconRight: () => <ChevronRight className="h-5 w-5" />,
       }}
