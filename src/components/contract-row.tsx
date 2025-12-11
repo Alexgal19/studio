@@ -3,7 +3,7 @@
 import type { Contract } from "@/lib/types";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar } from "@/components/calendar";
 import {
   Popover,
   PopoverContent,
