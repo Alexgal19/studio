@@ -1,9 +1,9 @@
+
 "use client"
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, DropdownProps } from "react-day-picker"
-import { pl } from "date-fns/locale";
+import { DayPicker, useDayPicker, useNavigation } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -13,8 +13,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./select"
-import { ScrollArea } from "./scroll-area"
+} from "@/components/ui/select"
+import { pl } from "date-fns/locale"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -24,8 +24,24 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const { fromDate, toDate, fromMonth, toMonth, fromYear, toYear } = useDayPicker();
+
+  const handleCalendarChange = (
+    value: string,
+    type: "month" | "year"
+  ) => {
+    const newDate = new Date();
+    if (type === "month") {
+      newDate.setMonth(parseInt(value, 10));
+    } else if (type === "year") {
+      newDate.setFullYear(parseInt(value, 10));
+    }
+    // Implement goToDate or similar logic if needed, for now this is a placeholder
+  };
+  
   return (
     <DayPicker
+      locale={pl}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
@@ -64,48 +80,73 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
-        IconRight: () => <ChevronRight className="h-4 w-4" />,
-        Dropdown: (dropdownProps: DropdownProps) => {
-          const { value, onChange, options, name } = dropdownProps;
-          const selected = options.find((option) => option.value === value);
-          const handleChange = (newValue: string) => {
-            const changeEvent = {
-              target: { value: newValue },
-            } as React.ChangeEvent<HTMLSelectElement>;
-            onChange?.(changeEvent);
-          };
-          return (
-            <Select
-              value={value?.toString()}
-              onValueChange={(newValue) => {
-                handleChange(newValue);
-              }}
-              name={name}
-            >
-              <SelectTrigger className="pr-1.5 focus:ring-0">
-                <SelectValue>{selected?.label}</SelectValue>
-              </SelectTrigger>
-              <SelectContent position="popper">
-                <ScrollArea className="h-80">
-                  {options.map((option, id: number) => (
-                    <SelectItem
-                      key={`${option.value}-${id}`}
-                      value={option.value?.toString() ?? ""}
-                    >
-                      {option.label}
+        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
+        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        Dropdown: ({ ...props }) => {
+          const { fromDate, toDate, fromMonth, toMonth, fromYear, toYear } = useDayPicker();
+          const { goToMonth, month, year } = useNavigation();
+
+          if (props.name === "months") {
+            const months = Array.from({ length: 12 }, (_, i) => i);
+            return (
+              <Select
+                value={month?.getMonth().toString()}
+                onValueChange={(value) => {
+                  const newDate = new Date(year || new Date().getFullYear(), parseInt(value));
+                  goToMonth(newDate);
+                }}
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Miesiąc" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((m) => (
+                    <SelectItem key={m} value={m.toString()}>
+                      {format(new Date(new Date().getFullYear(), m, 1), "LLLL", { locale: pl })}
                     </SelectItem>
                   ))}
-                </ScrollArea>
-              </SelectContent>
-            </Select>
-          );
+                </SelectContent>
+              </Select>
+            );
+          }
+          
+          if (props.name === "years") {
+            const startYear = fromYear || new Date().getFullYear() - 100;
+            const endYear = toYear || new Date().getFullYear() + 10;
+            const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
+            
+            return (
+              <Select
+                value={year?.toString()}
+                onValueChange={(value) => {
+                  const newDate = new Date(parseInt(value), month?.getMonth() || 0);
+                  goToMonth(newDate);
+                }}
+              >
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue placeholder="Rok" />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((y) => (
+                    <SelectItem key={y} value={y.toString()}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            );
+          }
+
+          return null;
         },
       }}
       {...props}
     />
-  );
+  )
 }
 Calendar.displayName = "Calendar"
+
+// Helper function to format date, needs to be available
+import { format } from "date-fns";
 
 export { Calendar }
