@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { pl } from "date-fns/locale"
+import { format } from "date-fns";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -24,20 +25,6 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
-  const { fromDate, toDate, fromMonth, toMonth, fromYear, toYear } = useDayPicker();
-
-  const handleCalendarChange = (
-    value: string,
-    type: "month" | "year"
-  ) => {
-    const newDate = new Date();
-    if (type === "month") {
-      newDate.setMonth(parseInt(value, 10));
-    } else if (type === "year") {
-      newDate.setFullYear(parseInt(value, 10));
-    }
-    // Implement goToDate or similar logic if needed, for now this is a placeholder
-  };
   
   return (
     <DayPicker
@@ -145,8 +132,5 @@ function Calendar({
   )
 }
 Calendar.displayName = "Calendar"
-
-// Helper function to format date, needs to be available
-import { format } from "date-fns";
 
 export { Calendar }
