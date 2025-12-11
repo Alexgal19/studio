@@ -2,7 +2,7 @@
 "use client";
 
 import type { Person, Contract } from "@/lib/types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { ContractRow } from "./contract-row";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
