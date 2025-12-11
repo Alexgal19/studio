@@ -3,17 +3,10 @@
 import type { Contract } from "@/lib/types";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { TableCell } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
-import { CalendarIcon, Trash2 } from "lucide-react";
-import { format, differenceInCalendarDays } from "date-fns";
-import { pl } from "date-fns/locale";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Trash2 } from "lucide-react";
+import { differenceInCalendarDays } from "date-fns";
+import { Input } from "@/components/ui/input";
 
 interface ContractRowProps {
   contract: Contract;
@@ -27,84 +20,69 @@ export function ContractRow({
   removeContract,
 }: ContractRowProps) {
 
-  const handleDateChange = (date: Date | undefined, field: "startDate" | "endDate") => {
-    updateContract({ ...contract, [field]: date });
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>, field: "startDate" | "endDate") => {
+    const value = e.target.value;
+    // Basic validation for yyyy-mm-dd format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value) || value === '') {
+        const date = value ? new Date(value) : undefined;
+        if (date && !isNaN(date.getTime())) {
+             updateContract({ ...contract, [field]: date });
+        } else if (!value) {
+            updateContract({ ...contract, [field]: undefined });
+        }
+    }
   };
+
+  const formatDateForInput = (date?: Date) => {
+    if (!date) return '';
+    try {
+        // Ensure date is a valid Date object before formatting
+        if (Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date.getTime())) {
+             return date.toISOString().split('T')[0];
+        }
+        // Handle cases where date might be an invalid string from localStorage
+        if (typeof date === 'string') {
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime())) {
+                return parsedDate.toISOString().split('T')[0];
+            }
+        }
+    } catch (e) {
+        // console.error("Error formatting date:", e);
+    }
+    return '';
+  };
+
 
   const daysUsed = useMemo(() => {
     if (contract.startDate && contract.endDate) {
-      return differenceInCalendarDays(contract.endDate, contract.startDate) + 1;
+      const start = new Date(contract.startDate);
+      const end = new Date(contract.endDate);
+      if(!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
+        return differenceInCalendarDays(end, start) + 1;
+      }
     }
     return 0;
   }, [contract.startDate, contract.endDate]);
 
   return (
-    <>
+    <TableRow>
       <TableCell>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !contract.startDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {contract.startDate ? (
-                format(contract.startDate, "PPP", { locale: pl })
-              ) : (
-                <span>Wybierz datę</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={contract.startDate}
-              onSelect={(date) => handleDateChange(date, "startDate")}
-              disabled={{ after: contract.endDate }}
-              initialFocus
-              locale={pl}
-              captionLayout="dropdown-buttons"
-              fromYear={new Date().getFullYear() - 10}
-              toYear={new Date().getFullYear() + 10}
-            />
-          </PopoverContent>
-        </Popover>
+        <Input 
+          type="date"
+          value={formatDateForInput(contract.startDate)}
+          onChange={(e) => handleDateChange(e, "startDate")}
+          className="w-full"
+        />
       </TableCell>
       <TableCell>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !contract.endDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {contract.endDate ? (
-                format(contract.endDate, "PPP", { locale: pl })
-              ) : (
-                <span>Wybierz datę</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={contract.endDate}
-              onSelect={(date) => handleDateChange(date, "endDate")}
-              disabled={{ before: contract.startDate }}
-              initialFocus
-              locale={pl}
-              captionLayout="dropdown-buttons"
-              fromYear={new Date().getFullYear() - 10}
-              toYear={new Date().getFullYear() + 10}
-            />
-          </PopoverContent>
-        </Popover>
+         <Input 
+          type="date"
+          value={formatDateForInput(contract.endDate)}
+          onChange={(e) => handleDateChange(e, "endDate")}
+          className="w-full"
+          min={contract.startDate ? formatDateForInput(contract.startDate) : ''}
+        />
       </TableCell>
       <TableCell className="text-center font-medium">
         {daysUsed > 0 ? `${daysUsed} dni` : "-"}
@@ -115,6 +93,6 @@ export function ContractRow({
           <span className="sr-only">Usuń okres</span>
         </Button>
       </TableCell>
-    </>
+    </TableRow>
   );
 }
