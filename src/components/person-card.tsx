@@ -119,7 +119,8 @@ export function PersonCard({
           <TableBody>
             <AnimatePresence>
               {person.contracts.map((contract) => (
-                <motion.tr
+                <TableRow
+                  as={motion.tr}
                   key={contract.id}
                   layout
                   initial={{ opacity: 0 }}
@@ -133,7 +134,7 @@ export function PersonCard({
                     updateContract={updateContract}
                     removeContract={removeContract}
                   />
-                </motion.tr>
+                </TableRow>
               ))}
             </AnimatePresence>
           </TableBody>

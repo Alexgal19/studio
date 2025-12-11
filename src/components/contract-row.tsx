@@ -5,9 +5,12 @@ import type { Contract } from "@/lib/types";
 import React, { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
-import { Trash2 } from "lucide-react";
-import { differenceInCalendarDays } from "date-fns";
-import { Input } from "@/components/ui/input";
+import { CalendarIcon, Trash2 } from "lucide-react";
+import { differenceInCalendarDays, format } from "date-fns";
+import { pl } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Calendar } from "./ui/calendar";
+import { cn } from "@/lib/utils";
 
 interface ContractRowProps {
   contract: Contract;
@@ -31,44 +34,69 @@ export function ContractRow({
     return 0;
   }, [contract.startDate, contract.endDate]);
 
-  const formatDateForInput = (date?: Date): string => {
-    if (!date) return "";
-    try {
-      return new Date(date).toISOString().split("T")[0];
-    } catch {
-      return "";
-    }
-  };
-
   return (
     <>
       <TableCell>
-        <Input
-          type="date"
-          value={formatDateForInput(contract.startDate)}
-          onChange={(e) =>
-            updateContract({
-              ...contract,
-              startDate: e.target.value ? new Date(e.target.value) : undefined,
-            })
-          }
-          className="w-full p-2 border rounded-md"
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[240px] justify-start text-left font-normal",
+                !contract.startDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {contract.startDate ? (
+                format(contract.startDate, "PPP", { locale: pl })
+              ) : (
+                <span>Wybierz datę</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={contract.startDate}
+              onSelect={(date) =>
+                updateContract({ ...contract, startDate: date })
+              }
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </TableCell>
       <TableCell>
-        <Input
-          type="date"
-          value={formatDateForInput(contract.endDate)}
-          onChange={(e) =>
-            updateContract({
-              ...contract,
-              endDate: e.target.value ? new Date(e.target.value) : undefined,
-            })
-          }
-          className="w-full p-2 border rounded-md"
-          min={formatDateForInput(contract.startDate)}
-          disabled={!contract.startDate}
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              disabled={!contract.startDate}
+              className={cn(
+                "w-[240px] justify-start text-left font-normal",
+                !contract.endDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {contract.endDate ? (
+                format(contract.endDate, "PPP", { locale: pl })
+              ) : (
+                <span>Wybierz datę</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={contract.endDate}
+              onSelect={(date) =>
+                updateContract({ ...contract, endDate: date })
+              }
+              disabled={{ before: contract.startDate }}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </TableCell>
       <TableCell className="text-center font-medium">
         {daysUsed > 0 ? `${daysUsed} dni` : "-"}
