@@ -65,20 +65,22 @@ function Calendar({
       components={{
         IconLeft: () => <ChevronLeft className="h-4 w-4" />,
         IconRight: () => <ChevronRight className="h-4 w-4" />,
-        Dropdown: ({ value, onChange, options }: DropdownProps) => {
+        Dropdown: (dropdownProps: DropdownProps) => {
+          const { value, onChange, options, name } = dropdownProps;
           const selected = options.find((option) => option.value === value);
-          const handleChange = (value: string) => {
+          const handleChange = (newValue: string) => {
             const changeEvent = {
-              target: { value },
+              target: { value: newValue },
             } as React.ChangeEvent<HTMLSelectElement>;
             onChange?.(changeEvent);
           };
           return (
             <Select
               value={value?.toString()}
-              onValueChange={(value) => {
-                handleChange(value);
+              onValueChange={(newValue) => {
+                handleChange(newValue);
               }}
+              name={name}
             >
               <SelectTrigger className="pr-1.5 focus:ring-0">
                 <SelectValue>{selected?.label}</SelectValue>
