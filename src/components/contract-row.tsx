@@ -58,7 +58,6 @@ export function ContractRow({
                 "w-full justify-start text-left font-normal",
                 !contract.startDate && "text-muted-foreground"
               )}
-              onClick={showDiagnosticAlert}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {contract.startDate ? (
@@ -92,7 +91,6 @@ export function ContractRow({
                 "w-full justify-start text-left font-normal",
                 !contract.endDate && "text-muted-foreground"
               )}
-              onClick={showDiagnosticAlert}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {contract.endDate ? (
