@@ -92,7 +92,7 @@ export function TempWorkCalculator() {
     setPersons([]);
   };
 
-  if (!isClient || !ready) {
+  if (!ready) {
     return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
   }
 
