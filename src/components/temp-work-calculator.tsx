@@ -102,7 +102,7 @@ export function TempWorkCalculator() {
         <Button onClick={addPerson}>
           <Plus className="mr-2" />{t('addPerson')}
         </Button>
-        {installPrompt && (
+        {isClient && installPrompt && (
           <Button variant="secondary" onClick={handleInstallClick}>
             <Download className="mr-2" />
             {t('installApp')}
@@ -123,7 +123,7 @@ export function TempWorkCalculator() {
               </SelectContent>
             </Select>
         </div>
-        {persons.length > 0 && (
+        {isClient && persons.length > 0 && (
           <Button variant="destructive" onClick={clearAll}>
             <Trash2 className="mr-2" /> {t('clearAll')}
           </Button>
