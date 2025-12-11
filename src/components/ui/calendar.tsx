@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, useDayPicker } from "react-day-picker"
+import { DayPicker, useDayPicker, useNavigation } from "react-day-picker"
 import { format, isValid } from "date-fns"
 import { pl } from "date-fns/locale"
 
@@ -23,11 +23,15 @@ function Calendar({
       locale={pl}
       showOutsideDays={showOutsideDays}
       className={cn("p-3 bg-card", className)}
+      captionLayout="dropdown-buttons"
+      fromYear={new Date().getFullYear() - 100}
+      toYear={new Date().getFullYear() + 5}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-start pt-1 relative items-center",
         caption_label: "text-lg font-bold",
+        caption_dropdowns: "flex gap-2",
         nav: "space-x-1 flex items-center ml-auto",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
