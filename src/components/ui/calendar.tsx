@@ -3,7 +3,7 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker, useDayPicker, useNavigation } from "react-day-picker"
-import { format } from "date-fns"
+import { format, isValid } from "date-fns"
 import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
@@ -24,7 +24,7 @@ function CustomToolbar() {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div className="text-lg font-bold">
-          {currentMonth && format(currentMonth, "LLLL yyyy", { locale: pl })}
+          {currentMonth && isValid(currentMonth) ? format(currentMonth, "LLLL yyyy", { locale: pl }) : '...'}
         </div>
         <button
           type="button"
@@ -40,8 +40,12 @@ function CustomToolbar() {
 }
 
 function CustomDay(props: { date: Date }) {
+  if (!props.date || !isValid(props.date)) {
+    return <div className="h-10 w-10"></div>;
+  }
+    
   const { currentMonth } = useDayPicker()
-  const isOutside = currentMonth ? props.date.getMonth() !== currentMonth.getMonth() : false
+  const isOutside = currentMonth && isValid(currentMonth) ? props.date.getMonth() !== currentMonth.getMonth() : false
 
   return (
     <div
