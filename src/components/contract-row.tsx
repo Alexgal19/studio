@@ -11,6 +11,7 @@ import { pl } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface ContractRowProps {
   contract: Contract;
@@ -23,6 +24,7 @@ export function ContractRow({
   updateContract,
   removeContract,
 }: ContractRowProps) {
+  const { t } = useTranslation();
 
   const daysUsed = React.useMemo(() => {
     if (contract.startDate && contract.endDate) {
@@ -51,7 +53,7 @@ export function ContractRow({
               {contract.startDate ? (
                 format(contract.startDate, "PPP", { locale: pl })
               ) : (
-                <span>Wybierz datę</span>
+                <span>{t('selectDate')}</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -82,7 +84,7 @@ export function ContractRow({
               {contract.endDate ? (
                 format(contract.endDate, "PPP", { locale: pl })
               ) : (
-                <span>Wybierz datę</span>
+                <span>{t('selectDate')}</span>
               )}
             </Button>
           </PopoverTrigger>
@@ -100,7 +102,7 @@ export function ContractRow({
         </Popover>
       </TableCell>
       <TableCell className="text-center font-medium">
-        {daysUsed > 0 ? `${daysUsed} dni` : "-"}
+        {daysUsed > 0 ? t('daysUnit', { count: daysUsed }) : "-"}
       </TableCell>
       <TableCell className="text-right">
         <Button
@@ -109,7 +111,7 @@ export function ContractRow({
           onClick={() => removeContract(contract.id)}
         >
           <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Usuń okres</span>
+          <span className="sr-only">{t('removePeriod')}</span>
         </Button>
       </TableCell>
     </>

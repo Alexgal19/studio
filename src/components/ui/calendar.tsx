@@ -9,10 +9,12 @@ import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { useTranslation } from "react-i18next"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
 function CustomCaption(props: CaptionProps) {
+  const { i18n } = useTranslation();
   const { goToMonth, nextMonth, previousMonth } = useNavigation();
   const { currentMonth } = useDayPicker();
 
@@ -42,6 +44,7 @@ function CustomCaption(props: CaptionProps) {
   }
 
   const months = Array.from({ length: 12 }, (_, i) => i);
+  const locale = i18n.language === 'pl' ? pl : undefined;
 
   return (
     <div className="flex justify-center items-center gap-4 mb-4">
@@ -61,7 +64,7 @@ function CustomCaption(props: CaptionProps) {
         >
           {months.map((month) => (
             <option key={month} value={month}>
-              {format(new Date(0, month), "LLLL", { locale: pl })}
+              {format(new Date(0, month), "LLLL", { locale })}
             </option>
           ))}
         </select>
@@ -96,9 +99,12 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  const { i18n } = useTranslation();
+  const locale = i18n.language === 'pl' ? pl : undefined;
+  
   return (
     <DayPicker
-      locale={pl}
+      locale={locale}
       showOutsideDays={showOutsideDays}
       className={cn("p-3 bg-card", className)}
       classNames={{
@@ -126,7 +132,7 @@ function Calendar({
         ...classNames,
       }}
       formatters={{
-        formatWeekdayName: (day) => format(day, "eee", { locale: pl }).slice(0, 3)
+        formatWeekdayName: (day) => format(day, "eee", { locale }).slice(0, 3)
       }}
       components={{
         Caption: CustomCaption,

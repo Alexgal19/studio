@@ -1,7 +1,10 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { PWAInstaller } from '@/components/pwa-installer';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
 
 export const metadata: Metadata = {
   title: 'TempWork Limit Calculator',
@@ -42,9 +45,11 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <PWAInstaller>
-          {children}
-        </PWAInstaller>
+        <I18nextProvider i18n={i18n}>
+          <PWAInstaller>
+            {children}
+          </PWAInstaller>
+        </I18nextProvider>
         <Toaster />
       </body>
     </html>

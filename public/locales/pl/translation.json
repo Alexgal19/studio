@@ -1,0 +1,23 @@
+{
+  "appTitle": "Kalkulator Limitu Pracy Tymczasowej 18/36",
+  "addPerson": "+ Dodaj Osobę",
+  "installApp": "Zainstaluj aplikację",
+  "limitSelectLabel": "Wybierz limit dni:",
+  "limitInDays": "{{days}} dni",
+  "clearAll": "Wyczyść wszystko",
+  "loadingData": "Ładowanie danych...",
+  "personNamePlaceholder": "Imię i Nazwisko",
+  "removePerson": "Usuń osobę",
+  "startDate": "Data Rozpoczęcia",
+  "endDate": "Data Zakończenia",
+  "usedDays": "Wykorzystane Dni",
+  "action": "Akcja",
+  "addPeriod": "+ Dodaj Okres",
+  "calculationResults": "Wyniki Kalkulacji",
+  "daysUsedLabel": "Wykorzystane dni: <strong>{{totalDaysUsed}}</strong>",
+  "daysRemainingLabel": "Pozostało dni: <strong>{{remainingDays}}</strong>",
+  "limitExceeded": "Limit przekroczony o {{days}} dni!",
+  "removePeriod": "Usuń okres",
+  "selectDate": "Wybierz datę",
+  "daysUnit": "{{count}} dni"
+}

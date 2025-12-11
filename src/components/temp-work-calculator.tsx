@@ -16,8 +16,10 @@ import {
 } from "@/components/ui/select";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePWAInstaller } from "./pwa-installer";
+import { useTranslation } from "react-i18next";
 
 export function TempWorkCalculator() {
+  const { t } = useTranslation();
   const [persons, setPersons] = useState<Person[]>([]);
   const [limitInDays, setLimitInDays] = useState<number>(548);
   const { installPrompt, handleInstallClick } = usePWAInstaller();
@@ -25,12 +27,10 @@ export function TempWorkCalculator() {
 
   useEffect(() => {
     setIsClient(true);
-    // Load state from localStorage if it exists
     try {
       const savedState = localStorage.getItem("tempWorkCalculatorState");
       if (savedState) {
         const { persons: savedPersons, limitInDays: savedLimit } = JSON.parse(savedState);
-        // Dates need to be reconstructed from strings
         const restoredPersons = savedPersons.map((person: Person) => ({
           ...person,
           contracts: person.contracts.map(contract => ({
@@ -44,14 +44,12 @@ export function TempWorkCalculator() {
       }
     } catch (error) {
       console.error("Failed to load state from localStorage", error);
-      // Initialize with default state if localStorage is corrupt
       setPersons([]);
       setLimitInDays(548);
     }
   }, []);
 
   useEffect(() => {
-    // Save state to localStorage whenever it changes
     if (isClient) {
       try {
         const stateToSave = JSON.stringify({ persons, limitInDays });
@@ -95,23 +93,23 @@ export function TempWorkCalculator() {
   };
 
   if (!isClient) {
-    return <Card className="overflow-hidden shadow-lg p-6">Ładowanie danych...</Card>;
+    return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-4 items-center justify-center">
         <Button onClick={addPerson}>
-          <Plus className="mr-2" />+ Dodaj Osobę
+          <Plus className="mr-2" />{t('addPerson')}
         </Button>
         {installPrompt && (
           <Button variant="secondary" onClick={handleInstallClick}>
             <Download className="mr-2" />
-            Zainstaluj aplikację
+            {t('installApp')}
           </Button>
         )}
         <div className="flex items-center gap-2">
-           <label htmlFor="limitDays" className="text-sm font-medium">Wybierz limit dni:</label>
+           <label htmlFor="limitDays" className="text-sm font-medium">{t('limitSelectLabel')}</label>
            <Select
               value={String(limitInDays)}
               onValueChange={(value) => setLimitInDays(Number(value))}
@@ -120,14 +118,14 @@ export function TempWorkCalculator() {
                 <SelectValue placeholder="Limit" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="548">548 dni</SelectItem>
-                <SelectItem value="540">540 dni</SelectItem>
+                <SelectItem value="548">{t('limitInDays', {days: 548})}</SelectItem>
+                <SelectItem value="540">{t('limitInDays', {days: 540})}</SelectItem>
               </SelectContent>
             </Select>
         </div>
         {persons.length > 0 && (
           <Button variant="destructive" onClick={clearAll}>
-            <Trash2 className="mr-2" /> Wyczyść wszystko
+            <Trash2 className="mr-2" /> {t('clearAll')}
           </Button>
         )}
       </div>

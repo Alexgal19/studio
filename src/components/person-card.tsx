@@ -2,7 +2,7 @@
 "use client";
 
 import type { Person, Contract } from "@/lib/types";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ContractRow } from "./contract-row";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 interface PersonCardProps {
   person: Person;
@@ -38,6 +39,14 @@ export function PersonCard({
   removePerson,
   limitInDays,
 }: PersonCardProps) {
+  const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
   };
@@ -77,13 +86,17 @@ export function PersonCard({
     const remainingDays = limitInDays - totalDaysUsed;
     return { totalDaysUsed, remainingDays };
   }, [person.contracts, limitInDays]);
+  
+  if (!isClient) {
+    return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
+  }
 
   return (
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between bg-card">
         <CardTitle className="flex-grow">
           <Input
-            placeholder="Imię i Nazwisko"
+            placeholder={t('personNamePlaceholder')}
             value={person.fullName}
             onChange={handleNameChange}
             className="text-lg font-semibold border-0 focus-visible:ring-1 focus-visible:ring-ring"
@@ -91,17 +104,17 @@ export function PersonCard({
         </CardTitle>
         <Button variant="ghost" size="icon" onClick={() => removePerson(person.id)}>
           <Trash2 className="h-5 w-5 text-destructive" />
-          <span className="sr-only">Usuń osobę</span>
+          <span className="sr-only">{t('removePerson')}</span>
         </Button>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Data Rozpoczęcia</TableHead>
-              <TableHead>Data Zakończenia</TableHead>
-              <TableHead className="text-center">Wykorzystane Dni</TableHead>
-              <TableHead className="text-right">Akcja</TableHead>
+              <TableHead>{t('startDate')}</TableHead>
+              <TableHead>{t('endDate')}</TableHead>
+              <TableHead className="text-center">{t('usedDays')}</TableHead>
+              <TableHead className="text-right">{t('action')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -129,12 +142,12 @@ export function PersonCard({
         </Table>
         <div className="mt-4">
           <Button variant="outline" size="sm" onClick={addContract}>
-            <Plus className="mr-2 h-4 w-4" />+ Dodaj Okres
+            <Plus className="mr-2 h-4 w-4" />{t('addPeriod')}
           </Button>
         </div>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
-        <h3 className="font-semibold text-lg">Wyniki Kalkulacji</h3>
+        <h3 className="font-semibold text-lg">{t('calculationResults')}</h3>
         <div
           className={cn(
             "w-full p-4 rounded-lg transition-colors duration-300",
@@ -144,12 +157,18 @@ export function PersonCard({
           )}
         >
           <div className="flex justify-between items-center">
-            <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>Wykorzystane dni: <strong className="font-bold">{totalDaysUsed}</strong></span>
-            <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>Pozostało dni: <strong className="font-bold">{remainingDays}</strong></span>
+            <span 
+              className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}
+              dangerouslySetInnerHTML={{ __html: t('daysUsedLabel', { totalDaysUsed }) }} 
+            />
+            <span 
+              className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}
+              dangerouslySetInnerHTML={{ __html: t('daysRemainingLabel', { remainingDays }) }}
+            />
           </div>
           {remainingDays < 0 && (
             <p className="text-destructive font-bold text-center mt-2">
-              Limit przekroczony o {Math.abs(remainingDays)} dni!
+              {t('limitExceeded', { days: Math.abs(remainingDays) })}
             </p>
           )}
         </div>
