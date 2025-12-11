@@ -82,7 +82,7 @@ function CalendarDropdown(props: DropdownProps) {
     )
   }
 
-  return null
+  return <></>
 }
 
 function Calendar({
