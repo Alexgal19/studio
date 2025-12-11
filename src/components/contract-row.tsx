@@ -2,7 +2,7 @@
 "use client";
 
 import type { Contract } from "@/lib/types";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { TableCell } from "@/components/ui/table";
 import { Trash2, CalendarIcon } from "lucide-react";
@@ -25,16 +25,18 @@ export function ContractRow({
   removeContract,
 }: ContractRowProps) {
   const { t } = useTranslation();
+  const [daysUsed, setDaysUsed] = useState(0);
 
-  const daysUsed = React.useMemo(() => {
+  useEffect(() => {
     if (contract.startDate && contract.endDate) {
       const start = new Date(contract.startDate);
       const end = new Date(contract.endDate);
       if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
-        return differenceInCalendarDays(end, start) + 1;
+        setDaysUsed(differenceInCalendarDays(end, start) + 1);
+        return;
       }
     }
-    return 0;
+    setDaysUsed(0);
   }, [contract.startDate, contract.endDate]);
 
   return (
