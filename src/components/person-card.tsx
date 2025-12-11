@@ -40,6 +40,23 @@ export function PersonCard({
   limitInDays,
 }: PersonCardProps) {
   const { t, ready } = useTranslation();
+  const [totalDaysUsed, setTotalDaysUsed] = useState<number | null>(null);
+  const [remainingDays, setRemainingDays] = useState<number | null>(null);
+
+  useEffect(() => {
+    const daysUsed = person.contracts.reduce((total, contract) => {
+      if (contract.startDate && contract.endDate) {
+        const start = new Date(contract.startDate);
+        const end = new Date(contract.endDate);
+        if(!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
+            return total + differenceInCalendarDays(end, start) + 1;
+        }
+      }
+      return total;
+    }, 0);
+    setTotalDaysUsed(daysUsed);
+    setRemainingDays(limitInDays - daysUsed);
+  }, [person.contracts, limitInDays]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
@@ -66,21 +83,6 @@ export function PersonCard({
     updatePerson({ ...person, contracts: updatedContracts });
   };
 
-  const { totalDaysUsed, remainingDays } = useMemo(() => {
-    const totalDaysUsed = person.contracts.reduce((total, contract) => {
-      if (contract.startDate && contract.endDate) {
-        const start = new Date(contract.startDate);
-        const end = new Date(contract.endDate);
-        if(!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
-            return total + differenceInCalendarDays(end, start) + 1;
-        }
-      }
-      return total;
-    }, 0);
-    const remainingDays = limitInDays - totalDaysUsed;
-    return { totalDaysUsed, remainingDays };
-  }, [person.contracts, limitInDays]);
-  
   if (!ready) {
     return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
   }
@@ -142,30 +144,39 @@ export function PersonCard({
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
         <h3 className="font-semibold text-lg">{t('calculationResults')}</h3>
-        <div
-          className={cn(
-            "w-full p-4 rounded-lg transition-colors duration-300",
-            remainingDays >= 0
-              ? "bg-primary/10 text-primary-foreground"
-              : "bg-destructive/10 text-destructive"
-          )}
-        >
-          <div className="flex justify-between items-center">
-            <span 
-              className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}
-              dangerouslySetInnerHTML={{ __html: t('daysUsedLabel', { totalDaysUsed }) }} 
-            />
-            <span 
-              className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}
-              dangerouslySetInnerHTML={{ __html: t('daysRemainingLabel', { remainingDays }) }}
-            />
+        {totalDaysUsed !== null && remainingDays !== null ? (
+          <div
+            className={cn(
+              "w-full p-4 rounded-lg transition-colors duration-300",
+              remainingDays >= 0
+                ? "bg-primary/10 text-primary-foreground"
+                : "bg-destructive/10 text-destructive"
+            )}
+          >
+            <div className="flex justify-between items-center">
+              <span 
+                className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}
+                dangerouslySetInnerHTML={{ __html: t('daysUsedLabel', { totalDaysUsed }) }} 
+              />
+              <span 
+                className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}
+                dangerouslySetInnerHTML={{ __html: t('daysRemainingLabel', { remainingDays }) }}
+              />
+            </div>
+            {remainingDays < 0 && (
+              <p className="text-destructive font-bold text-center mt-2">
+                {t('limitExceeded', { days: Math.abs(remainingDays) })}
+              </p>
+            )}
           </div>
-          {remainingDays < 0 && (
-            <p className="text-destructive font-bold text-center mt-2">
-              {t('limitExceeded', { days: Math.abs(remainingDays) })}
-            </p>
-          )}
-        </div>
+        ) : (
+          <div className="w-full p-4 rounded-lg bg-muted/50">
+            <div className="flex justify-between items-center">
+              <span>-</span>
+              <span>-</span>
+            </div>
+          </div>
+        )}
       </CardFooter>
     </Card>
   );
