@@ -122,7 +122,7 @@ export function PersonCard({
                 <TableRow
                   as={motion.tr}
                   key={contract.id}
-                  layout
+                  layout="position"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
