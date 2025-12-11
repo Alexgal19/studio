@@ -48,7 +48,7 @@ function Calendar({
       components={{
         Months: ({ ...monthsProps }) => {
             const { goToMonth, nextMonth, previousMonth } = useNavigation();
-            const { currentMonth, classNames: internalClassNames } = useDayPicker();
+            const { currentMonth } = useDayPicker();
 
             const weekdays = ["pon", "wto", "śro", "czw", "pią", "sob", "nie"];
 
@@ -57,6 +57,7 @@ function Calendar({
                     {/* Left Column for Navigation */}
                     <div className="flex flex-col justify-center items-center gap-4">
                          <button
+                            type="button"
                             disabled={!previousMonth}
                             onClick={() => previousMonth && goToMonth(previousMonth)}
                             className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-7 w-7")}
@@ -64,6 +65,7 @@ function Calendar({
                             <ChevronLeft className="h-4 w-4" />
                         </button>
                         <button
+                            type="button"
                             disabled={!nextMonth}
                             onClick={() => nextMonth && goToMonth(nextMonth)}
                              className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-7 w-7")}
@@ -75,13 +77,13 @@ function Calendar({
                     {/* Right Column for Calendar Grid */}
                     <div className="grid grid-cols-7 gap-1">
                         <div className="col-span-7 text-lg font-medium">
-                            {format(currentMonth, "LLLL yyyy", { locale: pl })}
+                            {currentMonth && format(currentMonth, "LLLL yyyy", { locale: pl })}
                         </div>
 
                         {/* Custom Weekday Headers */}
                         <div className="font-bold text-center">{weekdays[0]}</div>
-                        <div className="col-span-6 font-bold text-center">
-                            {weekdays.slice(1).join(' ')}
+                        <div className="col-span-6 grid grid-cols-6 text-center font-bold">
+                            {weekdays.slice(1).map((day, i) => <div key={i}>{day}</div>)}
                         </div>
 
                         {/* Days rendered by DayPicker's internal logic */}
