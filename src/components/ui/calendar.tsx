@@ -44,28 +44,29 @@ function Calendar({
         head_cell:
           "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
-        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+        cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-stone-100/50 [&:has([aria-selected])]:bg-stone-100 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
         ),
         day_range_end: "day-range-end",
         day_selected:
-          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-        day_today: "bg-accent text-accent-foreground",
+          "bg-stone-900 text-stone-50 hover:bg-stone-900 hover:text-stone-50 focus:bg-stone-900 focus:text-stone-50",
+        day_today: "bg-stone-100 text-stone-900",
         day_outside:
-          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+          "day-outside text-muted-foreground opacity-50 aria-selected:bg-stone-100/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
         day_disabled: "text-muted-foreground opacity-50",
         day_range_middle:
-          "aria-selected:bg-accent aria-selected:text-accent-foreground",
+          "aria-selected:bg-stone-100 aria-selected:text-stone-900",
         day_hidden: "invisible",
         ...classNames,
       }}
       components={{
         Dropdown: (props) => {
-          const { fromDate, fromMonth, fromYear, toDate, toMonth, toYear } = useDayPicker();
+          const { fromYear, toYear } = useDayPicker();
 
           const { goToMonth, month } = useNavigation();
+
           if (props.name === 'months') {
             const months = Array.from({ length: 12 }, (_, i) => new Date(2024, i));
             return (
@@ -77,11 +78,11 @@ function Calendar({
                 }}
                 value={String(month.getMonth())}
               >
-                <SelectTrigger>{format(month, 'MMMM', { locale: props.locale })}</SelectTrigger>
+                <SelectTrigger>{month.toLocaleString(props.locale?.code, { month: 'long' })}</SelectTrigger>
                 <SelectContent>
                   {months.map((m, i) => (
                     <SelectItem key={i} value={String(i)}>
-                      {format(m, 'MMMM', { locale: props.locale })}
+                      {m.toLocaleString(props.locale?.code, { month: 'long' })}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -111,21 +112,15 @@ function Calendar({
               </Select>
             );
           }
-          return null;
+          return <></>;
         },
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+        IconRight: () => <ChevronRight className="h-4 w-4" />,
       }}
       {...props}
     />
   )
 }
 Calendar.displayName = "Calendar"
-
-function format(date: Date, format: string, options: { locale: Locale }): string {
-    // Simple formatter, in real app use date-fns `format`
-    const month = options.locale.localize?.month(date.getMonth(), { width: 'abbreviated' });
-    return month || '';
-}
 
 export { Calendar }
