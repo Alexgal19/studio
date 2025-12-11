@@ -1,8 +1,11 @@
+
 "use client"
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker, useDayPicker, useNavigation } from "react-day-picker"
+import { format } from "date-fns"
+import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -13,8 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { pl } from "date-fns/locale"
-import { format } from "date-fns";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -24,7 +25,6 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
-  
   return (
     <DayPicker
       locale={pl}
@@ -66,8 +66,8 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+        IconRight: () => <ChevronRight className="h-4 w-4" />,
         Dropdown: (dropdownProps) => {
           const { fromDate, toDate, fromMonth, toMonth, fromYear, toYear } = useDayPicker();
           const { goToMonth, month } = useNavigation();
@@ -78,6 +78,7 @@ function Calendar({
               <Select
                 value={month?.getMonth().toString()}
                 onValueChange={(value) => {
+                  if (!value) return;
                   const newDate = new Date(month?.getFullYear() || new Date().getFullYear(), parseInt(value));
                   goToMonth(newDate);
                 }}
@@ -105,6 +106,7 @@ function Calendar({
               <Select
                 value={month?.getFullYear().toString()}
                 onValueChange={(value) => {
+                  if (!value) return;
                   const newDate = new Date(parseInt(value), month?.getMonth() || 0);
                   goToMonth(newDate);
                 }}
