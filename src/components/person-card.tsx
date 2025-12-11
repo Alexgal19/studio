@@ -2,7 +2,7 @@
 "use client";
 
 import type { Person, Contract } from "@/lib/types";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { ContractRow } from "./contract-row";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,14 +161,12 @@ export function PersonCard({
             )}
           >
             <div className="flex justify-between items-center">
-              <span 
-                className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}
-                dangerouslySetInnerHTML={{ __html: t('daysUsedLabel', { totalDaysUsed }) }} 
-              />
-              <span 
-                className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}
-                dangerouslySetInnerHTML={{ __html: t('daysRemainingLabel', { remainingDays }) }}
-              />
+              <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+                {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed}</strong> {t('daysUsedLabel_suffix')}
+              </span>
+              <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+                 {t('daysRemainingLabel_prefix')} <strong>{remainingDays}</strong> {t('daysRemainingLabel_suffix')}
+              </span>
             </div>
             {remainingDays < 0 && (
               <p className="text-destructive font-bold text-center mt-2">
