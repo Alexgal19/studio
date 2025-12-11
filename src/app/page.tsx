@@ -3,9 +3,14 @@
 
 import { TempWorkCalculator } from '@/components/temp-work-calculator';
 import { useTranslation } from 'react-i18next';
+import { Card } from '@/components/ui/card';
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, ready } = useTranslation();
+
+  if (!ready) {
+    return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
+  }
 
   return (
     <main className="container mx-auto p-4 md:p-8">

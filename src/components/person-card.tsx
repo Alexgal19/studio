@@ -39,13 +39,7 @@ export function PersonCard({
   removePerson,
   limitInDays,
 }: PersonCardProps) {
-  const { t } = useTranslation();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
+  const { t, ready } = useTranslation();
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
@@ -87,7 +81,7 @@ export function PersonCard({
     return { totalDaysUsed, remainingDays };
   }, [person.contracts, limitInDays]);
   
-  if (!isClient) {
+  if (!ready) {
     return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
   }
 

@@ -19,7 +19,7 @@ import { usePWAInstaller } from "./pwa-installer";
 import { useTranslation } from "react-i18next";
 
 export function TempWorkCalculator() {
-  const { t } = useTranslation();
+  const { t, ready } = useTranslation();
   const [persons, setPersons] = useState<Person[]>([]);
   const [limitInDays, setLimitInDays] = useState<number>(548);
   const { installPrompt, handleInstallClick } = usePWAInstaller();
@@ -92,7 +92,7 @@ export function TempWorkCalculator() {
     setPersons([]);
   };
 
-  if (!isClient) {
+  if (!isClient || !ready) {
     return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
   }
 
