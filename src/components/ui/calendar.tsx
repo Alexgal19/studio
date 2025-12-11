@@ -76,7 +76,7 @@ function Calendar({
 
                     {/* Right Column for Calendar Grid */}
                     <div className="grid grid-cols-7 gap-1">
-                        <div className="col-span-7 text-lg font-medium">
+                        <div className="col-span-7 text-lg font-bold">
                             {currentMonth && format(currentMonth, "LLLL yyyy", { locale: pl })}
                         </div>
 
