@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Person, Contract } from "@/lib/types";
@@ -48,7 +49,7 @@ export function PersonCard({
   };
 
   const addContract = () => {
-    if (typeof window !== 'undefined') {
+    if (isClient) {
         const newContract: Contract = {
         id: crypto.randomUUID(),
         startDate: undefined,
@@ -82,7 +83,7 @@ export function PersonCard({
   }, [person.contracts, limitInDays]);
 
   if (!isClient) {
-    return <div>Ładowanie...</div>;
+    return <Card className="overflow-hidden shadow-lg p-6">Ładowanie...</Card>;
   }
 
   return (

@@ -1,9 +1,11 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import type { Person } from "@/lib/types";
 import { PersonCard } from "./person-card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Download, Plus, Trash2 } from "lucide-react";
 import {
   Select,
@@ -23,7 +25,43 @@ export function TempWorkCalculator() {
 
   useEffect(() => {
     setIsClient(true);
+    // Load state from localStorage if it exists
+    try {
+      const savedState = localStorage.getItem("tempWorkCalculatorState");
+      if (savedState) {
+        const { persons: savedPersons, limitInDays: savedLimit } = JSON.parse(savedState);
+        // Dates need to be reconstructed from strings
+        const restoredPersons = savedPersons.map((person: Person) => ({
+          ...person,
+          contracts: person.contracts.map(contract => ({
+            ...contract,
+            startDate: contract.startDate ? new Date(contract.startDate) : undefined,
+            endDate: contract.endDate ? new Date(contract.endDate) : undefined,
+          }))
+        }));
+        setPersons(restoredPersons);
+        setLimitInDays(savedLimit);
+      }
+    } catch (error) {
+      console.error("Failed to load state from localStorage", error);
+      // Initialize with default state if localStorage is corrupt
+      setPersons([]);
+      setLimitInDays(548);
+    }
   }, []);
+
+  useEffect(() => {
+    // Save state to localStorage whenever it changes
+    if (isClient) {
+      try {
+        const stateToSave = JSON.stringify({ persons, limitInDays });
+        localStorage.setItem("tempWorkCalculatorState", stateToSave);
+      } catch (error) {
+        console.error("Failed to save state to localStorage", error);
+      }
+    }
+  }, [persons, limitInDays, isClient]);
+
 
   const addPerson = () => {
     if (isClient) {
@@ -92,7 +130,7 @@ export function TempWorkCalculator() {
 
       <AnimatePresence>
         <div className="grid gap-6 md:grid-cols-1">
-          {persons.map((person) => (
+          {isClient && persons.map((person) => (
              <motion.div
               key={person.id}
               layout
@@ -111,6 +149,11 @@ export function TempWorkCalculator() {
           ))}
         </div>
       </AnimatePresence>
+       {!isClient && (
+          <div className="grid gap-6 md:grid-cols-1">
+            <Card className="overflow-hidden shadow-lg p-6">Ładowanie danych...</Card>
+          </div>
+        )}
     </div>
   );
 }
