@@ -40,7 +40,7 @@ export function TempWorkCalculator() {
           }))
         }));
         setPersons(restoredPersons);
-        setLimitInDays(savedLimit);
+        setLimitInDays(savedLimit || 548);
       }
     } catch (error) {
       console.error("Failed to load state from localStorage", error);
@@ -94,6 +94,10 @@ export function TempWorkCalculator() {
     setPersons([]);
   };
 
+  if (!isClient) {
+    return <Card className="overflow-hidden shadow-lg p-6">Ładowanie danych...</Card>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-4 items-center justify-center">
@@ -130,7 +134,7 @@ export function TempWorkCalculator() {
 
       <AnimatePresence>
         <div className="grid gap-6 md:grid-cols-1">
-          {isClient && persons.map((person) => (
+          {persons.map((person) => (
              <motion.div
               key={person.id}
               layout
@@ -149,11 +153,6 @@ export function TempWorkCalculator() {
           ))}
         </div>
       </AnimatePresence>
-       {!isClient && (
-          <div className="grid gap-6 md:grid-cols-1">
-            <Card className="overflow-hidden shadow-lg p-6">Ładowanie danych...</Card>
-          </div>
-        )}
     </div>
   );
 }
