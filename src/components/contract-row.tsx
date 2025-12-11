@@ -38,15 +38,6 @@ export function ContractRow({
     return 0;
   }, [contract.startDate, contract.endDate]);
 
-  const showDiagnosticAlert = () => {
-    alert(
-      "ALERT DIAGNOSTYCZNY:\n\n" +
-      "Ten komunikat potwierdza, że plik `contract-row.tsx` JEST aktualny.\n\n" +
-      "JEŚLI PO ZAMKNIĘCIU TEGO OKNA NADAL WIDZISZ STARY (PIONOWY) WYGLĄD KALENDARZA, oznacza to na 100%, że problemem jest uporczywa PAMIĘĆ PODRĘCZNA (CACHE) serwera deweloperskiego (Next.js / Turbopack).\n\n" +
-      "Serwer odmawia załadowania nowej wersji pliku `components/ui/calendar.tsx`, mimo że ten plik został już poprawiony."
-    );
-  };
-
   return (
     <>
       <TableCell>
