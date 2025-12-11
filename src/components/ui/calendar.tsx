@@ -3,8 +3,8 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
-import { format } from "date-fns"
+import { DayPicker, useDayPicker, useNavigation, CaptionProps } from "react-day-picker"
+import { format, getMonth, getYear } from "date-fns"
 import { pl } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
@@ -12,27 +12,99 @@ import { buttonVariants } from "@/components/ui/button"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
+function CustomCaption(props: CaptionProps) {
+  const { goToMonth, nextMonth, previousMonth } = useNavigation();
+  const { currentMonth } = useDayPicker();
+
+  if (!currentMonth) {
+    return null;
+  }
+
+  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(parseInt(e.target.value, 10));
+    goToMonth(newMonth);
+  };
+
+  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newYear = new Date(currentMonth);
+    newYear.setFullYear(parseInt(e.target.value, 10));
+    goToMonth(newYear);
+  };
+
+  const currentYear = getYear(props.displayMonth);
+  const fromYear = currentYear - 100;
+  const toYear = currentYear + 5;
+
+  const years = [];
+  for (let i = fromYear; i <= toYear; i++) {
+    years.push(i);
+  }
+
+  const months = Array.from({ length: 12 }, (_, i) => i);
+
+  return (
+    <div className="flex justify-center items-center gap-4 mb-4">
+      <button
+        disabled={!previousMonth}
+        onClick={() => previousMonth && goToMonth(previousMonth)}
+        className={cn(buttonVariants({ variant: "outline" }), "h-7 w-7 bg-transparent p-0")}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+
+      <div className="flex items-center gap-2">
+        <select
+          value={getMonth(props.displayMonth)}
+          onChange={handleMonthChange}
+          className="font-bold bg-transparent border-none focus:ring-0"
+        >
+          {months.map((month) => (
+            <option key={month} value={month}>
+              {format(new Date(0, month), "LLLL", { locale: pl })}
+            </option>
+          ))}
+        </select>
+        <select
+          value={getYear(props.displayMonth)}
+          onChange={handleYearChange}
+          className="font-bold bg-transparent border-none focus:ring-0"
+        >
+          {years.map((year) => (
+            <option key={year} value={year}>
+              {year}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <button
+        disabled={!nextMonth}
+        onClick={() => nextMonth && goToMonth(nextMonth)}
+        className={cn(buttonVariants({ variant: "outline" }), "h-7 w-7 bg-transparent p-0")}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
-  const currentYear = new Date().getFullYear();
   return (
     <DayPicker
       locale={pl}
       showOutsideDays={showOutsideDays}
       className={cn("p-3 bg-card", className)}
-      captionLayout="dropdown-buttons"
-      fromYear={currentYear - 100}
-      toYear={currentYear + 5}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption_label: "text-sm font-bold",
-        caption_dropdowns: "flex gap-2",
-        table: "w-full border-collapse space-y-1 mt-4",
+        caption: "hidden", // We use a custom caption
         head_row: "flex mb-2",
         head_cell: "text-muted-foreground rounded-md w-9 font-bold text-center text-[0.8rem] uppercase",
         row: "flex w-full mt-2",
@@ -57,6 +129,7 @@ function Calendar({
         formatWeekdayName: (day) => format(day, "eee", { locale: pl }).slice(0, 3)
       }}
       components={{
+        Caption: CustomCaption,
         IconLeft: () => <ChevronLeft className="h-5 w-5" />,
         IconRight: () => <ChevronRight className="h-5 w-5" />,
       }}
