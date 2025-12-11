@@ -137,6 +137,7 @@ export function PersonCard({
                     contract={contract}
                     updateContract={updateContract}
                     removeContract={removeContract}
+                    isClient={isClient}
                   />
                 </TableRow>
               ))}
