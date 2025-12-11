@@ -58,7 +58,7 @@ function CalendarDropdown(props: DropdownProps) {
 
   if (props.name === "years") {
     const earliestYear = fromYear || getYear(new Date()) - 20
-    const latestYear = toYear || getYear(new Date()) + 20
+    const latestYear = toYear || getYear(new Date()) + 10
     
     // Tworzymy tablicę lat
     const years = Array.from(
