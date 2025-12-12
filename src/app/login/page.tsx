@@ -55,14 +55,14 @@ export default function LoginPage() {
         <CardContent>
           <form action={formAction} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">{t('username')}</Label>
+              <Label htmlFor="phone">Numer telefonu</Label>
               <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="admin"
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="+48 123 456 789"
                 required
-                defaultValue="admin"
+                defaultValue="+48123456789"
               />
             </div>
             <div className="space-y-2">

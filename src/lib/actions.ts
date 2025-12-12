@@ -8,12 +8,12 @@ export async function login(
   formData: FormData
 ) {
   const session = await getSession();
-  const username = formData.get('username') as string;
+  const phone = formData.get('phone') as string;
   const password = formData.get('password') as string;
 
   // For demo purposes, using hardcoded credentials
-  if (username !== 'admin' || password !== 'password') {
-    return { success: false, message: 'Nieprawidłowa nazwa użytkownika lub hasło.' };
+  if (phone !== '+48123456789' || password !== 'password') {
+    return { success: false, message: 'Nieprawidłowy numer telefonu lub hasło.' };
   }
 
   session.isLoggedIn = true;
