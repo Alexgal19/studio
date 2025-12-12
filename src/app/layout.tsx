@@ -25,6 +25,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
         <meta name="theme-color" content="#4CAF50" />
         <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+        <script src="https://www.google.com/recaptcha/enterprise.js?render=6LcgQCksAAAAAG8tVwKA82fTPvBvvyZAyZK_u7Pg"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
