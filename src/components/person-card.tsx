@@ -102,7 +102,7 @@ export function PersonCard({
         <CardTitle className="flex-grow">
           <Input
             placeholder={t('personNamePlaceholder')}
-            value={person.fullName}
+            value={isClient ? person.fullName : ""}
             onChange={handleNameChange}
             className="text-lg font-semibold border-0 focus-visible:ring-1 focus-visible:ring-ring"
           />
