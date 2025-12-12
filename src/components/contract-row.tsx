@@ -15,7 +15,6 @@ interface ContractRowProps {
   contract: Contract;
   updateContract: (contract: Contract) => void;
   removeContract: (contractId: string) => void;
-  isClient: boolean;
 }
 
 export function ContractRow({

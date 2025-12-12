@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "react-i18next";
+import { Skeleton } from "./ui/skeleton";
 
 interface DatePickerWithManualInputProps {
   value?: Date;
@@ -25,10 +26,15 @@ interface DatePickerWithManualInputProps {
 const DATE_FORMAT = "dd.MM.yyyy";
 
 export function DatePickerWithManualInput({ value, onChange, id }: DatePickerWithManualInputProps) {
-  const { t } = useTranslation();
+  const { t, ready } = useTranslation();
   const [inputValue, setInputValue] = React.useState<string>("");
   const [isInvalid, setIsInvalid] = React.useState(false);
   const [popoverOpen, setPopoverOpen] = React.useState(false);
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   React.useEffect(() => {
     if (value) {
@@ -73,6 +79,10 @@ export function DatePickerWithManualInput({ value, onChange, id }: DatePickerWit
     }
     setPopoverOpen(false);
   };
+
+  if (!isClient || !ready) {
+    return <Skeleton className="h-10 w-full" />;
+  }
 
   return (
     <div className="relative">

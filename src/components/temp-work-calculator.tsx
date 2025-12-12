@@ -43,13 +43,13 @@ export function TempWorkCalculator() {
       setPersons(initialSession.persons);
       setLimitInDays(initialSession.limitInDays);
     }
-  }, []);
+  }, [loadSession]);
 
   useEffect(() => {
     if (isClient) {
       saveSession('__last_active__', { persons, limitInDays });
     }
-  }, [persons, limitInDays, isClient]);
+  }, [persons, limitInDays, isClient, saveSession]);
 
 
   const addPerson = () => {

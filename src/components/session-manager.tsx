@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Skeleton } from './ui/skeleton';
 
 interface SessionManagerProps {
   isOpen: boolean;
@@ -46,8 +47,13 @@ export function SessionManager({
   onLoad,
   onDelete,
 }: SessionManagerProps) {
-  const { t } = useTranslation();
+  const { t, ready } = useTranslation();
   const [sessionName, setSessionName] = useState('');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSave = () => {
     if (sessionName.trim()) {
@@ -55,6 +61,32 @@ export function SessionManager({
       setSessionName('');
     }
   };
+
+  if (!isClient || !ready) {
+    return (
+        <Sheet open={isOpen} onOpenChange={onOpenChange}>
+            <SheetContent className="flex flex-col">
+                 <SheetHeader>
+                    <Skeleton className="h-7 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                </SheetHeader>
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-1/4" />
+                        <div className="flex gap-2">
+                            <Skeleton className="h-10 flex-grow" />
+                            <Skeleton className="h-10 w-24" />
+                        </div>
+                    </div>
+                </div>
+                <div className="flex-grow flex flex-col min-h-0">
+                    <Skeleton className="h-6 w-1/2 mb-2" />
+                    <Skeleton className="h-24 flex-grow" />
+                </div>
+            </SheetContent>
+        </Sheet>
+    )
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>

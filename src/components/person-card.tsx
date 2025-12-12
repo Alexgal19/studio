@@ -144,10 +144,15 @@ export function PersonCard({
   removePerson,
   limitInDays,
 }: PersonCardProps) {
-  const { t } = useTranslation();
+  const { t, ready } = useTranslation();
   const [totalDaysUsed, setTotalDaysUsed] = useState<number>(0);
   const [remainingDays, setRemainingDays] = useState<number>(0);
   const [periods, setPeriods] = useState<Period[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const allContractsHaveDates = person.contracts.every(c => c.startDate && c.endDate);
@@ -196,6 +201,18 @@ export function PersonCard({
     const updatedContracts = person.contracts.filter((c) => c.id !== contractId);
     updatePerson({ ...person, contracts: updatedContracts });
   };
+
+  if (!isClient || !ready) {
+    return (
+        <Card className="overflow-hidden shadow-lg p-6">
+          <div className="flex justify-between items-center mb-4">
+            <Skeleton className="h-8 w-1/2" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+          <Skeleton className="h-40 w-full" />
+        </Card>
+    )
+  }
   
   return (
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -248,7 +265,6 @@ export function PersonCard({
                             contract={contract}
                             updateContract={updateContract}
                             removeContract={removeContract}
-                            isClient={true}
                           />
                         </motion.tr>
                       ))}
