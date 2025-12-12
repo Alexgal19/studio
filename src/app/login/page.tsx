@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { login } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,13 +15,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
+import { auth } from '@/lib/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -35,11 +37,15 @@ function SubmitButton() {
 }
 
 function LoginForm() {
-  const [state, formAction] = useFormState(login, null);
   const { toast } = useToast();
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     if (searchParams.get('registered') === 'true') {
@@ -50,6 +56,23 @@ function LoginForm() {
     }
   }, [searchParams, toast, t]);
 
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    startTransition(async () => {
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        await login(userCredential.user.uid);
+      } catch (e: any) {
+        if (e.code === 'auth/user-not-found' || e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+          setError(t('invalidCredentials'));
+        } else {
+          setError(t('loginError'));
+        }
+      }
+    });
+  }
+
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="text-center">
@@ -57,7 +80,7 @@ function LoginForm() {
         <CardDescription>{t('loginPageDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">{t('emailAddress')}</Label>
             <Input
@@ -66,6 +89,8 @@ function LoginForm() {
               type="email"
               placeholder="jan.kowalski@example.com"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
           <div className="space-y-2">
@@ -76,6 +101,8 @@ function LoginForm() {
                 name="password"
                 type={showPassword ? 'text' : 'password'}
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
               <Button
                 type="button"
@@ -94,12 +121,14 @@ function LoginForm() {
             </div>
           </div>
 
-          {state?.message && (
+          {error && (
             <Alert variant="destructive">
-              <AlertDescription>{state.message}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <SubmitButton />
+           <Button type="submit" disabled={isPending} className="w-full">
+            {isPending ? t('loggingIn') : t('login')}
+          </Button>
         </form>
       </CardContent>
        <CardFooter className="flex-col items-center gap-4">

@@ -3,8 +3,9 @@
 
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
+import type { UserRecord } from 'firebase-admin/auth';
 
-async function findUserByEmail(email: string) {
+async function findUserByEmail(email: string): Promise<UserRecord | null> {
   const { auth: adminAuth } = await import('@/lib/firebase-admin');
   if (!adminAuth) return null;
   try {
@@ -18,37 +19,15 @@ async function findUserByEmail(email: string) {
   }
 }
 
-export async function login(
-  prevState: { message: string } | null,
-  formData: FormData
-) {
+export async function login(uid: string) {
   const session = await getSession();
-  const email = formData.get('email') as string;
+  const user = await findUserByEmail(uid);
+
+  session.isLoggedIn = true;
+  session.uid = uid;
+  await session.save();
   
-  const { auth: adminAuth } = await import('@/lib/firebase-admin');
-  if (!adminAuth) {
-    return { message: 'Błąd konfiguracji serwera: usługa uwierzytelniania jest niedostępna. Skontaktuj się z administratorem.'}
-  }
-
-  try {
-    const user = await findUserByEmail(email);
-    if (!user) {
-      return { message: 'Nieprawidłowy adres e-mail lub hasło.' };
-    }
-    
-    // NOTE: This is a simplified login for demonstration. 
-    // In a real app, you'd verify the password, likely on the client-side
-    // with Firebase client SDK before calling a server action to create a session.
-    session.isLoggedIn = true;
-    session.uid = user.uid;
-    await session.save();
-    
-    redirect('/');
-
-  } catch (error) {
-    console.error("Login error:", error);
-    return { message: 'Wystąpił błąd podczas logowania.' };
-  }
+  redirect('/');
 }
 
 export async function logout() {
