@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 // W prawdziwej aplikacji to byłaby baza danych.
 // Używamy obiektu do symulacji przechowywania użytkowników.
 const users: { [key: string]: { phone: string; uid: string, password?: string } } = {
-    // Ta struktura będzie wypełniana dynamicznie
+    'initial-admin-user': { phone: '+48123456789', uid: 'initial-admin-user', password: 'password' }
 };
 
 async function findUserByPhone(phone: string) {
@@ -51,20 +51,31 @@ export async function register(
     formData: FormData
 ) {
     const phone = formData.get('phone') as string;
-    const uid = formData.get('uid') as string;
     const password = formData.get('password') as string;
+    const confirmPassword = formData.get('confirmPassword') as string;
 
-    if (!uid || !phone || !password) {
-        return { success: false, message: 'Brakujące dane do rejestracji.' };
+    if (!phone || !password || !confirmPassword) {
+        return { success: false, message: 'Wszystkie pola są wymagane.' };
+    }
+    
+    if (password !== confirmPassword) {
+        return { success: false, message: 'Hasła nie są takie same.' };
     }
 
     const existingUser = await findUserByPhone(phone);
     if (existingUser) {
         return { success: false, message: 'Ten numer telefonu jest już zarejestrowany.' };
     }
+    
+    // Generowanie prostego, unikalnego ID dla nowego użytkownika
+    const uid = `user_${Date.now()}`;
 
     // Zapisujemy użytkownika do naszej symulowanej "bazy danych"
     users[uid] = { phone, uid, password };
+
+    // Wylogowanie aktywnej sesji, jeśli istnieje
+    const session = await getSession();
+    session.destroy();
 
     return { success: true, message: 'Rejestracja pomyślna. Możesz się teraz zalogować.' };
 }
