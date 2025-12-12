@@ -33,6 +33,7 @@ function RegisterForm() {
   
   const [step, setStep] = useState(1); // 1: enter details, 2: enter code
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -46,7 +47,6 @@ function RegisterForm() {
     }
     if(state && !state.success) {
       setError(state.message);
-      // Jeśli błąd serwera (np. duplikat), cofnij do kroku 1
       setStep(1);
       setIsSubmitting(false);
     }
@@ -55,6 +55,7 @@ function RegisterForm() {
   const handleGetCode = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       setError(null);
+      setInfo(null);
       
       const formData = new FormData(formRef.current!);
       const phone = formData.get('phone') as string;
@@ -75,14 +76,16 @@ function RegisterForm() {
 
       try {
         if (typeof window !== 'undefined') {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-            });
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    'size': 'invisible',
+                });
+            }
         
             const confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
             setConfirmationResult(confirmation);
             setStep(2);
-            setError(t('codeSent'));
+            setInfo(t('codeSent'));
         }
       } catch (err: any) {
         console.error(err);
@@ -101,6 +104,7 @@ function RegisterForm() {
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       setError(null);
+      setInfo(null);
       setIsSubmitting(true);
       
       const formData = new FormData(e.currentTarget);
@@ -116,12 +120,7 @@ function RegisterForm() {
           const result = await confirmationResult.confirm(code);
           const user = result.user;
 
-          // Po pomyślnej weryfikacji kodu, tworzymy nowe FormData
-          // zawierające wszystkie potrzebne dane i wysyłamy je do naszej akcji serwerowej
-          const finalFormData = new FormData();
-          const initialFormData = new FormData(formRef.current!);
-          finalFormData.append('phone', initialFormData.get('phone') as string);
-          finalFormData.append('password', initialFormData.get('password') as string);
+          const finalFormData = new FormData(formRef.current!);
           finalFormData.append('uid', user.uid);
           
           formAction(finalFormData);
@@ -215,11 +214,17 @@ function RegisterForm() {
              </form>
         )}
 
+        {info && !error && (
+            <Alert variant="default" className="mt-4">
+              <AlertDescription>{info}</AlertDescription>
+            </Alert>
+        )}
         {error && (
-            <Alert variant={state?.success === false || (step === 1 && error !== null) ? "destructive" : "default"} className="mt-4">
+            <Alert variant="destructive" className="mt-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
         )}
+
 
         <div className="mt-4">
           {step === 1 ? (
@@ -227,7 +232,7 @@ function RegisterForm() {
                   {isSubmitting ? t('sendingCode') : t('getVerificationCode')}
               </Button>
             ) : (
-              <Button type="submit" form={registerFormRef.current?.id} disabled={isSubmitting} className="w-full">
+              <Button type="submit" form={registerFormRef.current?.id} onClick={(e) => registerFormRef.current?.requestSubmit()} disabled={isSubmitting} className="w-full">
                   {isSubmitting ? t('registering') : t('register')}
               </Button>
             )}
