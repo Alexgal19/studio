@@ -49,19 +49,21 @@ export function PersonCard({
   }, []);
 
   useEffect(() => {
-    const daysUsed = person.contracts.reduce((total, contract) => {
-      if (contract.startDate && contract.endDate) {
-        const start = new Date(contract.startDate);
-        const end = new Date(contract.endDate);
-        if(!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
-            return total + differenceInCalendarDays(end, start) + 1;
+    if (isClient) {
+      const daysUsed = person.contracts.reduce((total, contract) => {
+        if (contract.startDate && contract.endDate) {
+          const start = new Date(contract.startDate);
+          const end = new Date(contract.endDate);
+          if(!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
+              return total + differenceInCalendarDays(end, start) + 1;
+          }
         }
-      }
-      return total;
-    }, 0);
-    setTotalDaysUsed(daysUsed);
-    setRemainingDays(limitInDays - daysUsed);
-  }, [person.contracts, limitInDays]);
+        return total;
+      }, 0);
+      setTotalDaysUsed(daysUsed);
+      setRemainingDays(limitInDays - daysUsed);
+    }
+  }, [person.contracts, limitInDays, isClient]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
@@ -164,7 +166,7 @@ export function PersonCard({
             className={cn(
               "w-full p-4 rounded-lg transition-colors duration-300",
               remainingDays !== null && remainingDays >= 0
-                ? "bg-primary/10 text-primary-foreground"
+                ? "bg-primary/10"
                 : "bg-destructive/10 text-destructive"
             )}
           >
