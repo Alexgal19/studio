@@ -17,6 +17,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { usePWAInstaller } from "./pwa-installer";
 import { useTranslation } from "react-i18next";
+import { Skeleton } from "./ui/skeleton";
 
 export function TempWorkCalculator() {
   const { t, ready } = useTranslation();
@@ -95,7 +96,6 @@ export function TempWorkCalculator() {
   };
 
   if (!isClient) {
-    // Render a skeleton or null during SSR and initial client render
     return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
   }
 
@@ -113,18 +113,22 @@ export function TempWorkCalculator() {
         )}
         <div className="flex items-center gap-2">
            <label htmlFor="limitDays" className="text-sm font-medium">{t('limitSelectLabel')}</label>
-           <Select
-              value={String(limitInDays)}
-              onValueChange={(value) => setLimitInDays(Number(value))}
-            >
-              <SelectTrigger id="limitDays" className="w-[120px]">
-                <SelectValue placeholder="Limit" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="548">{t('limitInDays', {days: 548})}</SelectItem>
-                <SelectItem value="540">{t('limitInDays', {days: 540})}</SelectItem>
-              </SelectContent>
-            </Select>
+           {isClient ? (
+             <Select
+                value={String(limitInDays)}
+                onValueChange={(value) => setLimitInDays(Number(value))}
+              >
+                <SelectTrigger id="limitDays" className="w-[120px]">
+                  <SelectValue placeholder="Limit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="548">{t('limitInDays', {days: 548})}</SelectItem>
+                  <SelectItem value="540">{t('limitInDays', {days: 540})}</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Skeleton className="h-10 w-[120px]" />
+            )}
         </div>
         {persons.length > 0 && (
           <Button variant="destructive" onClick={clearAll}>
