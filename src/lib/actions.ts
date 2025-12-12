@@ -4,7 +4,7 @@
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { getAuth } from 'firebase-admin/auth';
-import { auth as adminAuth } from '@/lib/firebase-admin';
+
 
 // W prawdziwej aplikacji to byłaby baza danych.
 // Używamy obiektu do symulacji przechowywania użytkowników.
@@ -53,6 +53,7 @@ export async function register(
     prevState: { message: string, success?: boolean } | null,
     formData: FormData
 ) {
+    const { auth: adminAuth } = await import('@/lib/firebase-admin');
     const phone = formData.get('phone') as string;
     const uid = formData.get('uid') as string;
     const password = formData.get('password') as string;

@@ -216,7 +216,7 @@ function RegisterForm() {
         )}
 
         {error && (
-            <Alert variant={state?.success === false || step === 1 ? "destructive" : "default"} className="mt-4">
+            <Alert variant={state?.success === false || (step === 1 && error !== null) ? "destructive" : "default"} className="mt-4">
               <AlertDescription>{error}</AlertDescription>
             </Alert>
         )}
