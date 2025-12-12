@@ -3,38 +3,44 @@
 
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
-import { auth } from '@/lib/firebase-admin'; // We will create this admin SDK file
+import { getAuth } from 'firebase-admin/auth';
+import { auth as adminAuth } from '@/lib/firebase-admin';
 
-// In a real application, this would be a proper database.
-const users: { [key: string]: { phone: string; uid: string } } = {
-    'placeholder_uid_admin': { phone: '+48123456789', uid: 'placeholder_uid_admin' }
+// W prawdziwej aplikacji to byłaby baza danych.
+// Używamy obiektu do symulacji przechowywania użytkowników.
+const users: { [key: string]: { phone: string; uid: string, password?: string } } = {
+    // Ta struktura będzie wypełniana dynamicznie
 };
 
+async function findUserByPhone(phone: string) {
+    for (const uid in users) {
+        if (users[uid].phone === phone) {
+            return { uid, ...users[uid] };
+        }
+    }
+    return null;
+}
+
 export async function login(
-  prevState: { message: string } | null,
+  prevState: { message: string, success?: boolean } | null,
   formData: FormData
 ) {
   const session = await getSession();
   const phone = formData.get('phone') as string;
   const password = formData.get('password') as string;
 
-  // This is a simplified login for the prototype.
-  // A real app would verify the password against a hash stored with the user record.
-  // For now, we just check if the user exists in our "database"
-  const userExists = Object.values(users).some(u => u.phone === phone);
+  const user = await findUserByPhone(phone);
 
-  if (!userExists) {
+  if (!user || user.password !== password) {
     return { success: false, message: 'Nieprawidłowy numer telefonu lub hasło.' };
   }
-  
-  // In a real app you'd verify password here. For now we assume it's correct if user exists.
 
   session.isLoggedIn = true;
-  // In a real app, you would store the user's UID in the session
-  // const user = await auth.getUserByPhoneNumber(phone);
-  // session.uid = user.uid;
+  session.uid = user.uid;
   await session.save();
-  return { success: true, message: 'Zalogowano pomyślnie' };
+  
+  // Zamiast zwracać dane, przekierowujemy od razu po stronie serwera
+  redirect('/');
 }
 
 export async function logout() {
@@ -44,7 +50,7 @@ export async function logout() {
 }
 
 export async function register(
-    prevState: { message: string } | null,
+    prevState: { message: string, success?: boolean } | null,
     formData: FormData
 ) {
     const phone = formData.get('phone') as string;
@@ -56,19 +62,32 @@ export async function register(
     }
 
     try {
-        // Create user in Firebase Auth
-        await auth.updateUser(uid, {
+        // Używamy admin SDK do ustawienia hasła
+        // ponieważ po weryfikacji SMS użytkownik jest już utworzony, ale bez hasła
+        await adminAuth.updateUser(uid, {
           password: password,
-          phoneNumber: phone,
+          phoneNumber: phone, // Upewniamy się, że numer telefonu jest poprawnie przypisany
+          // Możemy tu również ustawić displayName, email etc.
         });
 
-        // Save user to our "database"
-        users[uid] = { phone, uid };
+        // Zapisujemy użytkownika do naszej symulowanej "bazy danych"
+        users[uid] = { phone, uid, password };
 
         return { success: true, message: 'Rejestracja pomyślna. Możesz się teraz zalogować.' };
 
     } catch (error: any) {
         console.error("Registration error:", error);
-        return { success: false, message: error.message || 'Wystąpił błąd podczas rejestracji.' };
+        // Mapowanie kodów błędów Firebase na bardziej przyjazne komunikaty
+        let friendlyMessage = 'Wystąpił błąd podczas rejestracji.';
+        if(error.code === 'auth/phone-number-already-exists') {
+            friendlyMessage = 'Ten numer telefonu jest już zarejestrowany.';
+        }
+        return { success: false, message: friendlyMessage };
     }
+}
+
+declare module 'iron-session' {
+  interface IronSessionData {
+    uid?: string;
+  }
 }
