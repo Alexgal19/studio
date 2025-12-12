@@ -28,25 +28,27 @@ export function TempWorkCalculator() {
 
   useEffect(() => {
     setIsClient(true);
-    try {
-      const savedState = localStorage.getItem("tempWorkCalculatorState");
-      if (savedState) {
-        const { persons: savedPersons, limitInDays: savedLimit } = JSON.parse(savedState);
-        const restoredPersons = savedPersons.map((person: Person) => ({
-          ...person,
-          contracts: person.contracts.map(contract => ({
-            ...contract,
-            startDate: contract.startDate ? new Date(contract.startDate) : undefined,
-            endDate: contract.endDate ? new Date(contract.endDate) : undefined,
-          }))
-        }));
-        setPersons(restoredPersons);
-        setLimitInDays(savedLimit || 548);
+    if (typeof window !== 'undefined') {
+      try {
+        const savedState = localStorage.getItem("tempWorkCalculatorState");
+        if (savedState) {
+          const { persons: savedPersons, limitInDays: savedLimit } = JSON.parse(savedState);
+          const restoredPersons = savedPersons.map((person: Person) => ({
+            ...person,
+            contracts: person.contracts.map(contract => ({
+              ...contract,
+              startDate: contract.startDate ? new Date(contract.startDate) : undefined,
+              endDate: contract.endDate ? new Date(contract.endDate) : undefined,
+            }))
+          }));
+          setPersons(restoredPersons);
+          setLimitInDays(savedLimit || 548);
+        }
+      } catch (error) {
+        console.error("Failed to load state from localStorage", error);
+        setPersons([]);
+        setLimitInDays(548);
       }
-    } catch (error) {
-      console.error("Failed to load state from localStorage", error);
-      setPersons([]);
-      setLimitInDays(548);
     }
   }, []);
 
@@ -95,8 +97,27 @@ export function TempWorkCalculator() {
     }
   };
 
-  if (!isClient) {
-    return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
+  if (!isClient || !ready) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-wrap gap-4 items-center justify-center">
+          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32" />
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-[120px]" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+        <Card className="overflow-hidden shadow-lg p-6">
+          <div className="flex justify-between items-center mb-4">
+            <Skeleton className="h-8 w-1/2" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+          </div>
+          <Skeleton className="h-20 w-full" />
+        </Card>
+      </div>
+    );
   }
 
   return (
@@ -113,22 +134,18 @@ export function TempWorkCalculator() {
         )}
         <div className="flex items-center gap-2">
            <label htmlFor="limitDays" className="text-sm font-medium">{t('limitSelectLabel')}</label>
-           {isClient ? (
-             <Select
-                value={String(limitInDays)}
-                onValueChange={(value) => setLimitInDays(Number(value))}
-              >
-                <SelectTrigger id="limitDays" className="w-[120px]">
-                  <SelectValue placeholder="Limit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="548">{t('limitInDays', {days: 548})}</SelectItem>
-                  <SelectItem value="540">{t('limitInDays', {days: 540})}</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Skeleton className="h-10 w-[120px]" />
-            )}
+           <Select
+              value={String(limitInDays)}
+              onValueChange={(value) => setLimitInDays(Number(value))}
+            >
+              <SelectTrigger id="limitDays" className="w-[120px]">
+                <SelectValue placeholder="Limit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="548">{t('limitInDays', {days: 548})}</SelectItem>
+                <SelectItem value="540">{t('limitInDays', {days: 540})}</SelectItem>
+              </SelectContent>
+            </Select>
         </div>
         {persons.length > 0 && (
           <Button variant="destructive" onClick={clearAll}>
