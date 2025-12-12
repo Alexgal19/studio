@@ -19,11 +19,12 @@ import { useTranslation } from "react-i18next";
 interface DatePickerWithManualInputProps {
   value?: Date;
   onChange: (date?: Date) => void;
+  id?: string;
 }
 
 const DATE_FORMAT = "dd.MM.yyyy";
 
-export function DatePickerWithManualInput({ value, onChange }: DatePickerWithManualInputProps) {
+export function DatePickerWithManualInput({ value, onChange, id }: DatePickerWithManualInputProps) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = React.useState<string>("");
   const [isInvalid, setIsInvalid] = React.useState(false);
@@ -76,13 +77,14 @@ export function DatePickerWithManualInput({ value, onChange }: DatePickerWithMan
   return (
     <div className="relative">
       <Input
+        id={id}
         type="text"
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
         placeholder={t('selectDate')}
         className={cn(
-          "w-[240px] pr-10",
+          "w-full pr-10",
           isInvalid && "border-destructive focus-visible:ring-destructive"
         )}
       />

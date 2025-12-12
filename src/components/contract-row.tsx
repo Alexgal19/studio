@@ -9,6 +9,7 @@ import { Trash2 } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { useTranslation } from "react-i18next";
 import { DatePickerWithManualInput } from "./date-picker-with-manual-input";
+import { Label } from "./ui/label";
 
 interface ContractRowProps {
   contract: Contract;
@@ -41,25 +42,33 @@ export function ContractRow({
   return (
     <TableRow>
       <TableCell>
-        <DatePickerWithManualInput
-          value={contract.startDate}
-          onChange={(date) =>
-            updateContract({ ...contract, startDate: date })
-          }
-        />
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 space-y-1">
+            <Label htmlFor={`start-date-${contract.id}`}>{t('startDate')}</Label>
+            <DatePickerWithManualInput
+              id={`start-date-${contract.id}`}
+              value={contract.startDate}
+              onChange={(date) =>
+                updateContract({ ...contract, startDate: date })
+              }
+            />
+          </div>
+          <div className="flex-1 space-y-1">
+            <Label htmlFor={`end-date-${contract.id}`}>{t('endDate')}</Label>
+            <DatePickerWithManualInput
+              id={`end-date-${contract.id}`}
+              value={contract.endDate}
+              onChange={(date) =>
+                updateContract({ ...contract, endDate: date })
+              }
+            />
+          </div>
+        </div>
       </TableCell>
-      <TableCell>
-        <DatePickerWithManualInput
-          value={contract.endDate}
-          onChange={(date) =>
-            updateContract({ ...contract, endDate: date })
-          }
-        />
-      </TableCell>
-      <TableCell className="text-center font-medium">
+      <TableCell className="text-center font-medium align-middle">
         {daysUsed > 0 ? t('daysUnit', { count: daysUsed }) : "-"}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-right align-middle">
         <Button
           variant="ghost"
           size="icon"

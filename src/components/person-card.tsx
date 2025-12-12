@@ -115,8 +115,7 @@ export function PersonCard({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{t('startDate')}</TableHead>
-                  <TableHead>{t('endDate')}</TableHead>
+                  <TableHead className="w-[50%]">{t('period')}</TableHead>
                   <TableHead className="text-center">{t('usedDays')}</TableHead>
                   <TableHead className="text-right">{t('action')}</TableHead>
                 </TableRow>
