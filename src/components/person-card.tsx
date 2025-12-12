@@ -27,7 +27,14 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "./ui/skeleton";
 
-const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): Period[] => {
+interface PersonCardProps {
+  person: Person;
+  updatePerson: (person: Person) => void;
+  removePerson: (personId: string) => void;
+  limitInDays: number;
+}
+
+const groupContractsIntoPeriods = (personId: string, contracts: Contract[], limitInDays: number): Period[] => {
   const sortedContracts = [...contracts]
     .filter(c => c.startDate && c.endDate && isAfter(new Date(c.endDate), new Date(c.startDate)))
     .sort((a, b) => new Date(a.startDate!).getTime() - new Date(b.startDate!).getTime());
@@ -37,7 +44,7 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
   if (sortedContracts.length === 0) {
       if(contractsWithoutStartDate.length > 0) {
         const period: Period = {
-            id: 'period-new',
+            id: `period-new-${personId}`,
             startDate: undefined,
             endDate: undefined,
             contracts: contractsWithoutStartDate,
@@ -57,7 +64,6 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
       currentPeriod = createNewPeriod(contract, limitInDays);
       periods.push(currentPeriod);
     } else {
-      // Recalculate days used for the current period before deciding to create a new one
       const currentDaysUsed = calculateDaysUsed(currentPeriod.contracts);
       currentPeriod.totalDaysUsed = currentDaysUsed;
       currentPeriod.remainingDays = limitInDays - currentDaysUsed;
@@ -71,7 +77,6 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
     }
   }
 
-  // Final calculation and processing for all periods
   periods.forEach(period => {
     const daysUsed = calculateDaysUsed(period.contracts);
     period.totalDaysUsed = daysUsed;
@@ -87,7 +92,7 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
       }
     } else {
         if(period.startDate) {
-            const newPeriodStartDate = addDays(addMonths(period.startDate, 36), 0); // Corrected to 0 days from 1
+            const newPeriodStartDate = addDays(addMonths(period.startDate, 36), 0);
             period.resetDate = format(newPeriodStartDate, "dd.MM.yyyy");
         }
     }
@@ -97,6 +102,16 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
     const lastPeriod = periods[periods.length - 1];
     if (lastPeriod) {
         lastPeriod.contracts.push(...contractsWithoutStartDate);
+    } else {
+        const newPeriod: Period = {
+            id: `period-new-${personId}`,
+            startDate: undefined,
+            endDate: undefined,
+            contracts: contractsWithoutStartDate,
+            totalDaysUsed: 0,
+            remainingDays: limitInDays,
+        };
+        periods.push(newPeriod);
     }
   }
 
@@ -151,7 +166,7 @@ export function PersonCard({
     const allContractsHaveDates = person.contracts.every(c => c.startDate && c.endDate);
 
     if (person.contracts.length > 0) {
-        const groupedPeriods = groupContractsIntoPeriods(person.contracts, limitInDays);
+        const groupedPeriods = groupContractsIntoPeriods(person.id, person.contracts, limitInDays);
         setPeriods(groupedPeriods);
 
         if(allContractsHaveDates) {
@@ -169,7 +184,7 @@ export function PersonCard({
         setRemainingDays(limitInDays);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limitInDays, JSON.stringify(person.contracts)]);
+  }, [person.id, limitInDays, JSON.stringify(person.contracts)]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
