@@ -43,8 +43,9 @@ function LoginForm() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // Przekierowanie jest teraz obsługiwane w akcji serwera
     if (state?.success) {
-      toast({
+       toast({
         title: t('loginSuccessTitle'),
         description: t('loginSuccessDescription'),
       });
