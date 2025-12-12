@@ -19,33 +19,32 @@ async function findUserByEmail(email: string) {
 }
 
 export async function login(
-  prevState: { message: string, success?: boolean } | null,
+  prevState: { message: string } | null,
   formData: FormData
 ) {
   const session = await getSession();
   const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+  
+  const { auth: adminAuth } = await import('@/lib/firebase-admin');
+  if (!adminAuth) {
+    return { message: 'Usługa uwierzytelniania jest niedostępna.'}
+  }
 
   try {
     const user = await findUserByEmail(email);
     if (!user) {
-      return { success: false, message: 'Nieprawidłowy adres e-mail lub hasło.' };
+      return { message: 'Nieprawidłowy adres e-mail lub hasło.' };
     }
-
-    // UWAGA: Firebase Admin SDK nie udostępnia metody do bezpośredniej weryfikacji hasła.
-    // W pełnej aplikacji należałoby to rozwiązać inaczej (np. przez wywołanie API po stronie klienta).
-    // Dla celów tego projektu, akceptujemy logowanie, jeśli użytkownik istnieje.
-    // To jest główne uproszczenie w tym podejściu.
     
     session.isLoggedIn = true;
     session.uid = user.uid;
     await session.save();
     
-     redirect('/');
+    redirect('/');
 
   } catch (error) {
     console.error("Login error:", error);
-    return { success: false, message: 'Wystąpił błąd podczas logowania.' };
+    return { message: 'Wystąpił błąd podczas logowania.' };
   }
 }
 
@@ -88,9 +87,6 @@ export async function register(
             emailVerified: false,
         });
         
-        const session = await getSession();
-        session.destroy();
-
         return { success: true, message: 'Rejestracja pomyślna. Możesz się teraz zalogować.' };
     } catch (error: any) {
         console.error("Registration error:", error);

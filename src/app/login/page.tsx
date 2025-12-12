@@ -37,21 +37,9 @@ function SubmitButton() {
 function LoginForm() {
   const [state, formAction] = useFormState(login, null);
   const { toast } = useToast();
-  const router = useRouter();
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-    // Przekierowanie jest teraz obsługiwane w akcji serwera
-    if (state?.success) {
-       toast({
-        title: t('loginSuccessTitle'),
-        description: t('loginSuccessDescription'),
-      });
-      router.push('/');
-    }
-  }, [state, toast, router, t]);
   
   useEffect(() => {
     if (searchParams.get('registered') === 'true') {
@@ -106,7 +94,7 @@ function LoginForm() {
             </div>
           </div>
 
-          {state && !state.success && (
+          {state?.message && (
             <Alert variant="destructive">
               <AlertDescription>{state.message}</AlertDescription>
             </Alert>

@@ -14,7 +14,6 @@ if (!admin.apps.length) {
     if (serviceAccount.projectId && serviceAccount.clientEmail && serviceAccount.privateKey) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount as any),
-        databaseURL: `https://${process.env.FIREBASE_PROJECT_ID}.firebaseio.com`,
       });
     } else {
         if (process.env.NODE_ENV !== 'production') {
