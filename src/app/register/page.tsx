@@ -38,8 +38,7 @@ function RegisterForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const formRef = useRef<HTMLFormElement>(null);
-  const registerFormRef = useRef<HTMLFormElement>(null);
-
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (state?.success) {
@@ -51,6 +50,16 @@ function RegisterForm() {
       setIsSubmitting(false);
     }
   }, [state, router]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && recaptchaContainerRef.current) {
+        if (!window.recaptchaVerifier) {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
+                'size': 'invisible',
+            });
+        }
+    }
+  }, []);
   
   const handleGetCode = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
@@ -63,37 +72,33 @@ function RegisterForm() {
       const confirmPassword = formData.get('confirmPassword') as string;
       
       if (password !== confirmPassword) {
-          setError('Hasła nie są zgodne.');
+          setError(t('passwordsDoNotMatch'));
           return;
       }
       
       if (!phone || !password) {
-          setError('Numer telefonu i hasło są wymagane.');
+          setError(t('phoneAndPasswordRequired'));
           return;
       }
       
       setIsSubmitting(true);
 
       try {
-        if (typeof window !== 'undefined') {
-            if (!window.recaptchaVerifier) {
-                window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                    'size': 'invisible',
-                });
-            }
-        
-            const confirmation = await signInWithPhoneNumber(auth, phone, window.recaptchaVerifier);
-            setConfirmationResult(confirmation);
-            setStep(2);
-            setInfo(t('codeSent'));
+        const verifier = window.recaptchaVerifier;
+        if (!verifier) {
+            throw new Error("Recaptcha verifier not initialized.");
         }
+        const confirmation = await signInWithPhoneNumber(auth, phone, verifier);
+        setConfirmationResult(confirmation);
+        setStep(2);
+        setInfo(t('codeSent'));
       } catch (err: any) {
         console.error(err);
-        let friendlyMessage = 'Nie udało się wysłać kodu. Spróbuj ponownie.';
+        let friendlyMessage = t('failedToSendCode');
         if (err.code === 'auth/invalid-phone-number') {
-            friendlyMessage = 'Nieprawidłowy format numeru telefonu.';
+            friendlyMessage = t('invalidPhoneNumber');
         } else if (err.code === 'auth/too-many-requests') {
-            friendlyMessage = 'Zbyt wiele prób. Spróbuj ponownie później.';
+            friendlyMessage = t('tooManyRequests');
         }
         setError(friendlyMessage);
       } finally {
@@ -111,7 +116,7 @@ function RegisterForm() {
       const code = formData.get('verificationCode') as string;
 
       if (!confirmationResult) {
-          setError("Błąd weryfikacji, spróbuj ponownie od początku.");
+          setError(t('verificationError'));
           setIsSubmitting(false);
           return;
       }
@@ -140,6 +145,7 @@ function RegisterForm() {
         <CardDescription>{t('registrationPageDescription')}</CardDescription>
       </CardHeader>
       <CardContent>
+        <div id="recaptcha-container" ref={recaptchaContainerRef}></div>
         {step === 1 && (
             <form ref={formRef} className="space-y-4">
               <div className="space-y-2">
@@ -194,11 +200,14 @@ function RegisterForm() {
                   </Button>
                 </div>
               </div>
+              <Button onClick={handleGetCode} disabled={isSubmitting} className="w-full">
+                  {isSubmitting ? t('sendingCode') : t('getVerificationCode')}
+              </Button>
             </form>
         )}
 
         {step === 2 && (
-             <form ref={registerFormRef} onSubmit={handleRegister} className="space-y-4">
+             <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="verificationCode">{t('verificationCode')}</Label>
                   <Input
@@ -211,6 +220,9 @@ function RegisterForm() {
                   />
                    <p className="text-xs text-muted-foreground">{t('verificationCodeHintFirebase')}</p>
                 </div>
+                <Button type="submit" disabled={isSubmitting} className="w-full">
+                    {isSubmitting ? t('registering') : t('register')}
+                </Button>
              </form>
         )}
 
@@ -225,19 +237,6 @@ function RegisterForm() {
             </Alert>
         )}
 
-
-        <div className="mt-4">
-          {step === 1 ? (
-              <Button onClick={handleGetCode} disabled={isSubmitting} className="w-full">
-                  {isSubmitting ? t('sendingCode') : t('getVerificationCode')}
-              </Button>
-            ) : (
-              <Button type="submit" form={registerFormRef.current?.id} onClick={(e) => registerFormRef.current?.requestSubmit()} disabled={isSubmitting} className="w-full">
-                  {isSubmitting ? t('registering') : t('register')}
-              </Button>
-            )}
-        </div>
-         <div id="recaptcha-container" className="my-4"></div>
       </CardContent>
        <CardFooter className="flex-col items-center gap-4">
           <div className="text-sm text-muted-foreground">
@@ -302,3 +301,5 @@ declare global {
         recaptchaVerifier: RecaptchaVerifier;
     }
 }
+
+    
