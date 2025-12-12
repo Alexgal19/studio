@@ -4,7 +4,7 @@
 import type { Contract } from "@/lib/types";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { TableCell, TableRow } from "@/components/ui/table";
+import { TableCell } from "@/components/ui/table";
 import { Trash2 } from "lucide-react";
 import { differenceInCalendarDays } from "date-fns";
 import { useTranslation } from "react-i18next";
@@ -39,7 +39,7 @@ export function ContractRow({
   }, [contract.startDate, contract.endDate]);
   
   return (
-    <TableRow>
+    <>
       <TableCell>
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 space-y-1">
@@ -77,6 +77,6 @@ export function ContractRow({
           <span className="sr-only">{t('removePeriod')}</span>
         </Button>
       </TableCell>
-    </TableRow>
+    </>
   );
 }
