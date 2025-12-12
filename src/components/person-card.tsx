@@ -40,7 +40,7 @@ export function PersonCard({
   removePerson,
   limitInDays,
 }: PersonCardProps) {
-  const { t, ready } = useTranslation();
+  const { t } = useTranslation();
   const [totalDaysUsed, setTotalDaysUsed] = useState<number | null>(null);
   const [remainingDays, setRemainingDays] = useState<number | null>(null);
   const [isClient, setIsClient] = useState(false);
@@ -74,8 +74,8 @@ export function PersonCard({
     if (isClient) {
       const newContract: Contract = {
         id: crypto.randomUUID(),
-        startDate: new Date(),
-        endDate: new Date(),
+        startDate: undefined,
+        endDate: undefined,
       };
       updatePerson({ ...person, contracts: [...person.contracts, newContract] });
     }
@@ -92,10 +92,32 @@ export function PersonCard({
     const updatedContracts = person.contracts.filter((c) => c.id !== contractId);
     updatePerson({ ...person, contracts: updatedContracts });
   };
-
-  if (!ready) {
-    return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
+  
+  if (!isClient) {
+    return (
+      <Card className="overflow-hidden shadow-lg">
+        <CardHeader className="flex flex-row items-center justify-between bg-card">
+          <CardTitle className="flex-grow">
+            <Skeleton className="h-9 w-3/4" />
+          </CardTitle>
+           <Skeleton className="h-9 w-9" />
+        </CardHeader>
+        <CardContent>
+           <div className="space-y-2 p-4">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        </CardContent>
+        <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
+          <Skeleton className="h-6 w-1/3 mb-2" />
+          <div className="w-full p-4 rounded-lg bg-muted/50">
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </CardFooter>
+      </Card>
+    );
   }
+
 
   return (
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -103,7 +125,7 @@ export function PersonCard({
         <CardTitle className="flex-grow">
           <Input
             placeholder={t('personNamePlaceholder')}
-            value={isClient ? person.fullName : ""}
+            value={person.fullName}
             onChange={handleNameChange}
             className="text-lg font-semibold border-0 focus-visible:ring-1 focus-visible:ring-ring"
           />
@@ -114,7 +136,6 @@ export function PersonCard({
         </Button>
       </CardHeader>
       <CardContent>
-      {isClient ? (
         <>
           <Table>
             <TableHeader>
@@ -142,7 +163,6 @@ export function PersonCard({
                       contract={contract}
                       updateContract={updateContract}
                       removeContract={removeContract}
-                      isClient={isClient}
                     />
                   </motion.tr>
                 ))}
@@ -155,43 +175,31 @@ export function PersonCard({
             </Button>
           </div>
         </>
-        ) : (
-          <div className="space-y-2 p-4">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        )}
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
         <h3 className="font-semibold text-lg">{t('calculationResults')}</h3>
-        {isClient ? (
-          <div
-            className={cn(
-              "w-full p-4 rounded-lg transition-colors duration-300",
-              remainingDays !== null && remainingDays >= 0
-                ? "bg-primary/10"
-                : "bg-destructive/10 text-destructive"
-            )}
-          >
-            <div className="flex justify-between items-center">
-              <span className={cn(remainingDays !== null && remainingDays >= 0 ? "text-primary" : "text-destructive")}>
-                {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed ?? '-'}</strong> {t('daysUsedLabel_suffix')}
-              </span>
-              <span className={cn(remainingDays !== null && remainingDays >= 0 ? "text-primary" : "text-destructive")}>
-                 {t('daysRemainingLabel_prefix')} <strong>{remainingDays ?? '-'}</strong> {t('daysRemainingLabel_suffix')}
-              </span>
-            </div>
-            {remainingDays !== null && remainingDays < 0 && (
-              <p className="text-destructive font-bold text-center mt-2">
-                {t('limitExceeded', { days: Math.abs(remainingDays) })}
-              </p>
-            )}
+        <div
+          className={cn(
+            "w-full p-4 rounded-lg transition-colors duration-300",
+            remainingDays !== null && remainingDays >= 0
+              ? "bg-primary/10"
+              : "bg-destructive/10 text-destructive"
+          )}
+        >
+          <div className="flex justify-between items-center">
+            <span className={cn(remainingDays !== null && remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+              {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed ?? '-'}</strong> {t('daysUsedLabel_suffix')}
+            </span>
+            <span className={cn(remainingDays !== null && remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+               {t('daysRemainingLabel_prefix')} <strong>{remainingDays ?? '-'}</strong> {t('daysRemainingLabel_suffix')}
+            </span>
           </div>
-        ) : (
-          <div className="w-full p-4 rounded-lg bg-muted/50">
-            <Skeleton className="h-10 w-full" />
-          </div>
-        )}
+          {remainingDays !== null && remainingDays < 0 && (
+            <p className="text-destructive font-bold text-center mt-2">
+              {t('limitExceeded', { days: Math.abs(remainingDays) })}
+            </p>
+          )}
+        </div>
       </CardFooter>
     </Card>
   );

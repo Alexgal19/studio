@@ -89,10 +89,13 @@ export function TempWorkCalculator() {
   };
 
   const clearAll = () => {
-    setPersons([]);
+    if (isClient) {
+      setPersons([]);
+    }
   };
 
-  if (!ready) {
+  if (!isClient) {
+    // Render a skeleton or null during SSR and initial client render
     return <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>;
   }
 
@@ -102,7 +105,7 @@ export function TempWorkCalculator() {
         <Button onClick={addPerson}>
           <Plus className="mr-2" />{t('addPerson')}
         </Button>
-        {isClient && installPrompt && (
+        {installPrompt && (
           <Button variant="secondary" onClick={handleInstallClick}>
             <Download className="mr-2" />
             {t('installApp')}
@@ -123,7 +126,7 @@ export function TempWorkCalculator() {
               </SelectContent>
             </Select>
         </div>
-        {isClient && persons.length > 0 && (
+        {persons.length > 0 && (
           <Button variant="destructive" onClick={clearAll}>
             <Trash2 className="mr-2" /> {t('clearAll')}
           </Button>

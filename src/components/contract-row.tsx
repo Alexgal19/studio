@@ -17,14 +17,12 @@ interface ContractRowProps {
   contract: Contract;
   updateContract: (contract: Contract) => void;
   removeContract: (contractId: string) => void;
-  isClient: boolean;
 }
 
 export function ContractRow({
   contract,
   updateContract,
   removeContract,
-  isClient,
 }: ContractRowProps) {
   const { t } = useTranslation();
   const [daysUsed, setDaysUsed] = useState(0);
@@ -41,25 +39,6 @@ export function ContractRow({
     setDaysUsed(0);
   }, [contract.startDate, contract.endDate]);
 
-  if (!isClient) {
-    return (
-      <>
-        <TableCell>
-          <div className="h-9 w-[240px] bg-muted animate-pulse rounded-md" />
-        </TableCell>
-        <TableCell>
-          <div className="h-9 w-[240px] bg-muted animate-pulse rounded-md" />
-        </TableCell>
-        <TableCell className="text-center font-medium">-</TableCell>
-        <TableCell className="text-right">
-          <Button variant="ghost" size="icon" disabled>
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </TableCell>
-      </>
-    );
-  }
-  
   return (
     <>
       <TableCell>
