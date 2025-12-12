@@ -3,9 +3,9 @@
 
 import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
-import { auth as adminAuth } from '@/lib/firebase-admin';
 
 async function findUserByEmail(email: string) {
+  const { auth: adminAuth } = await import('@/lib/firebase-admin');
   if (!adminAuth) return null;
   try {
     const userRecord = await adminAuth.getUserByEmail(email);
@@ -26,13 +26,6 @@ export async function login(
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
-  // W bezpiecznym środowisku produkcyjnym, weryfikacja hasła odbywałaby się
-  // poprzez próbę utworzenia niestandardowego tokenu lub inną bezpieczną metodę.
-  // Tutaj, dla uproszczenia, zakładamy, że próba znalezienia użytkownika jest wystarczająca,
-  // a błędy logowania po stronie klienta (które miałyby miejsce w pełnej aplikacji)
-  // obsłużyłyby nieprawidłowe hasło.
-  // W naszej architekturze serwerowej weryfikacja samego hasła jest trudna bez klienckiego SDK.
-  // Symulujemy więc podstawową weryfikację.
   try {
     const user = await findUserByEmail(email);
     if (!user) {
@@ -40,16 +33,14 @@ export async function login(
     }
 
     // UWAGA: Firebase Admin SDK nie udostępnia metody do bezpośredniej weryfikacji hasła.
-    // Poniższy kod jest uproszczeniem. W pełnej aplikacji należałoby zintegrować
-    // logowanie po stronie klienta (signInWithEmailAndPassword) lub użyć niestandardowego systemu uwierzytelniania.
+    // W pełnej aplikacji należałoby to rozwiązać inaczej (np. przez wywołanie API po stronie klienta).
     // Dla celów tego projektu, akceptujemy logowanie, jeśli użytkownik istnieje.
-
+    // To jest główne uproszczenie w tym podejściu.
+    
     session.isLoggedIn = true;
     session.uid = user.uid;
     await session.save();
     
-    // Zamiast zwracać sukces, bezpośrednio przekierowujemy
-    // return { success: true, message: 'Zalogowano pomyślnie.' };
      redirect('/');
 
   } catch (error) {
@@ -68,6 +59,7 @@ export async function register(
     prevState: { message: string, success?: boolean } | null,
     formData: FormData
 ) {
+    const { auth: adminAuth } = await import('@/lib/firebase-admin');
     if (!adminAuth) {
       return { success: false, message: 'Usługa uwierzytelniania jest niedostępna.'}
     }
@@ -93,10 +85,9 @@ export async function register(
         await adminAuth.createUser({
             email,
             password,
-            emailVerified: false, // Można dodać logikę weryfikacji e-mail
+            emailVerified: false,
         });
         
-        // Wylogowanie aktywnej sesji, jeśli istnieje
         const session = await getSession();
         session.destroy();
 
