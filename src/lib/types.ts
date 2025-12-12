@@ -9,3 +9,14 @@ export interface Person {
   fullName: string;
   contracts: Contract[];
 }
+
+export interface Period {
+  id: string;
+  startDate?: Date;
+  endDate?: Date;
+  contracts: Contract[];
+  totalDaysUsed: number;
+  remainingDays: number;
+  canExtendUntil?: string | null;
+  resetDate?: string | null;
+}

@@ -1,7 +1,7 @@
 
 "use client";
 
-import type { Person, Contract } from "@/lib/types";
+import type { Person, Contract, Period } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { ContractRow } from "./contract-row";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
-import { differenceInCalendarDays, addDays, format, addMonths } from "date-fns";
+import { differenceInCalendarDays, addDays, format, addMonths, isBefore, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -34,6 +34,85 @@ interface PersonCardProps {
   limitInDays: number;
 }
 
+const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): Period[] => {
+  if (contracts.length === 0) {
+    return [];
+  }
+
+  const sortedContracts = [...contracts]
+    .filter(c => c.startDate)
+    .sort((a, b) => new Date(a.startDate!).getTime() - new Date(b.startDate!).getTime());
+
+  if (sortedContracts.length === 0) {
+    return [];
+  }
+
+  const periods: Period[] = [];
+  let currentPeriod: Period | null = null;
+
+  for (const contract of sortedContracts) {
+    if (!contract.startDate) continue;
+
+    if (!currentPeriod || isAfter(new Date(contract.startDate), new Date(currentPeriod.endDate!))) {
+      const periodStartDate = new Date(contract.startDate);
+      const periodEndDate = addDays(addMonths(periodStartDate, 36),-1);
+      
+      currentPeriod = {
+        id: crypto.randomUUID(),
+        startDate: periodStartDate,
+        endDate: periodEndDate,
+        contracts: [contract],
+        totalDaysUsed: 0,
+        remainingDays: limitInDays,
+      };
+      periods.push(currentPeriod);
+    } else {
+      currentPeriod.contracts.push(contract);
+    }
+  }
+
+  // Calculate days for each period
+  periods.forEach(period => {
+    const daysUsed = period.contracts.reduce((total, contract) => {
+      if (contract.startDate && contract.endDate) {
+        const start = new Date(contract.startDate);
+        const end = new Date(contract.endDate);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
+          return total + differenceInCalendarDays(end, start) + 1;
+        }
+      }
+      return total;
+    }, 0);
+
+    period.totalDaysUsed = daysUsed;
+    period.remainingDays = limitInDays - daysUsed;
+
+    if (period.remainingDays >= 0) {
+      const latestEndDate = period.contracts.reduce((latest: Date | null, contract) => {
+        if (contract.endDate) {
+          const endDate = new Date(contract.endDate);
+          if (!isNaN(endDate.getTime()) && (!latest || endDate > latest)) {
+            return endDate;
+          }
+        }
+        return latest;
+      }, null);
+
+      if (latestEndDate) {
+        period.canExtendUntil = format(addDays(latestEndDate, period.remainingDays), "dd.MM.yyyy");
+      }
+    } else {
+        if(period.startDate) {
+            const newPeriodStartDate = addDays(addMonths(period.startDate, 36), 1);
+            period.resetDate = format(newPeriodStartDate, "dd.MM.yyyy");
+        }
+    }
+  });
+
+  return periods;
+};
+
+
 export function PersonCard({
   person,
   updatePerson,
@@ -43,88 +122,34 @@ export function PersonCard({
   const { t } = useTranslation();
   const [totalDaysUsed, setTotalDaysUsed] = useState<number>(0);
   const [remainingDays, setRemainingDays] = useState<number>(0);
-  const [canExtendUntil, setCanExtendUntil] = useState<string | null>(null);
-  const [resetDate, setResetDate] = useState<string | null>(null);
-  const [isClient, setIsClient] = useState(false);
+  const [periods, setPeriods] = useState<Period[]>([]);
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    if (person.contracts.length > 0) {
+        const groupedPeriods = groupContractsIntoPeriods(person.contracts, limitInDays);
+        setPeriods(groupedPeriods);
 
-  useEffect(() => {
-    if (isClient) {
-      const daysUsed = person.contracts.reduce((total, contract) => {
-        if (contract.startDate && contract.endDate) {
-          const start = new Date(contract.startDate);
-          const end = new Date(contract.endDate);
-          if(!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
-              return total + differenceInCalendarDays(end, start) + 1;
-          }
-        }
-        return total;
-      }, 0);
-      setTotalDaysUsed(daysUsed);
-      
-      const currentRemainingDays = limitInDays - daysUsed;
-      setRemainingDays(currentRemainingDays);
-
-      if (currentRemainingDays >= 0) {
-        setResetDate(null);
-        const latestEndDate = person.contracts.reduce((latest: Date | null, contract) => {
-          if (contract.endDate) {
-            const endDate = new Date(contract.endDate);
-            if (!isNaN(endDate.getTime())) {
-              if (!latest || endDate > latest) {
-                return endDate;
-              }
-            }
-          }
-          return latest;
-        }, null);
-
-        if (latestEndDate) {
-          const extendDate = addDays(latestEndDate, currentRemainingDays);
-          setCanExtendUntil(format(extendDate, "dd.MM.yyyy"));
-        } else {
-          setCanExtendUntil(null);
-        }
-      } else {
-        setCanExtendUntil(null);
-        const firstStartDate = person.contracts.reduce((earliest: Date | null, contract) => {
-          if(contract.startDate){
-            const startDate = new Date(contract.startDate);
-            if (!isNaN(startDate.getTime())) {
-              if (!earliest || startDate < earliest) {
-                return startDate;
-              }
-            }
-          }
-          return earliest;
-        }, null);
-
-        if(firstStartDate) {
-          const newPeriodStartDate = addDays(addMonths(firstStartDate, 36), 1);
-          setResetDate(format(newPeriodStartDate, "dd.MM.yyyy"));
-        } else {
-          setResetDate(null);
-        }
-      }
+        const totalDays = groupedPeriods.reduce((sum, period) => sum + period.totalDaysUsed, 0);
+        setTotalDaysUsed(totalDays);
+        setRemainingDays(limitInDays - totalDays);
+    } else {
+        setPeriods([]);
+        setTotalDaysUsed(0);
+        setRemainingDays(limitInDays);
     }
-  }, [person.contracts, limitInDays, isClient]);
+  }, [person.contracts, limitInDays]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
   };
 
   const addContract = () => {
-    if (isClient) {
       const newContract: Contract = {
         id: crypto.randomUUID(),
         startDate: undefined,
         endDate: undefined,
       };
       updatePerson({ ...person, contracts: [...person.contracts, newContract] });
-    }
   };
 
   const updateContract = (updatedContract: Contract) => {
@@ -145,7 +170,7 @@ export function PersonCard({
         <CardTitle className="flex-grow">
           <Input
             placeholder={t('personNamePlaceholder')}
-            value={isClient ? person.fullName : ""}
+            value={person.fullName}
             onChange={handleNameChange}
             className="text-lg font-semibold border-0 focus-visible:ring-1 focus-visible:ring-ring"
           />
@@ -155,57 +180,99 @@ export function PersonCard({
           <span className="sr-only">{t('removePerson')}</span>
         </Button>
       </CardHeader>
-      <CardContent>
-        {isClient ? (
-          <>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50%]">{t('period')}</TableHead>
-                  <TableHead className="text-center">{t('usedDays')}</TableHead>
-                  <TableHead className="text-right">{t('action')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <AnimatePresence>
-                  {person.contracts.map((contract) => (
-                    <motion.tr
-                      key={contract.id}
-                      layout="position"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="w-full"
-                      as={TableRow}
-                    >
-                      <ContractRow
-                        contract={contract}
-                        updateContract={updateContract}
-                        removeContract={removeContract}
-                        isClient={isClient}
-                      />
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </TableBody>
-            </Table>
-            <div className="mt-4">
-              <Button variant="outline" size="sm" onClick={addContract}>
-                <Plus className="mr-2 h-4 w-4" />{t('addPeriod')}
-              </Button>
-            </div>
-          </>
+      <CardContent className="space-y-4">
+        {periods.length > 0 ? (
+          periods.map((period, index) => (
+            <Card key={period.id} className="bg-muted/20">
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  {t('period')} {index + 1}: {period.startDate ? format(period.startDate, 'dd.MM.yyyy') : ''} - {period.endDate ? format(period.endDate, 'dd.MM.yyyy') : ''}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[50%]">{t('period')}</TableHead>
+                      <TableHead className="text-center">{t('usedDays')}</TableHead>
+                      <TableHead className="text-right">{t('action')}</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <AnimatePresence>
+                      {period.contracts.map((contract) => (
+                        <motion.tr
+                          key={contract.id}
+                          layout="position"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="w-full"
+                          as={TableRow}
+                        >
+                          <ContractRow
+                            contract={contract}
+                            updateContract={updateContract}
+                            removeContract={removeContract}
+                            isClient={true}
+                          />
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </TableBody>
+                </Table>
+              </CardContent>
+               <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
+                <h3 className="font-semibold">{t('periodCalculation')}</h3>
+                <div
+                  className={cn(
+                    "w-full p-3 rounded-lg text-sm",
+                    period.remainingDays >= 0
+                      ? "bg-primary/10"
+                      : "bg-destructive/10 text-destructive"
+                  )}
+                >
+                  <div className="flex justify-between items-center">
+                    <span className={cn(period.remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+                      {t('daysUsedLabel_prefix')} <strong>{period.totalDaysUsed}</strong> {t('daysUsedLabel_suffix')}
+                    </span>
+                    <span className={cn(period.remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+                      {t('daysRemainingLabel_prefix')} <strong>{period.remainingDays}</strong> {t('daysRemainingLabel_suffix')}
+                    </span>
+                  </div>
+                  {period.remainingDays < 0 && (
+                    <>
+                      <p className="text-destructive font-bold text-center mt-2">
+                        {t('limitExceeded', { days: Math.abs(period.remainingDays) })}
+                      </p>
+                      {period.resetDate && (
+                        <p className="text-primary font-bold text-center mt-2">
+                          {t('next36MonthPeriod')} {period.resetDate}
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {period.remainingDays >= 0 && period.canExtendUntil && (
+                    <p className="text-primary font-bold text-center mt-2">
+                      {t('canExtendUntil')} {period.canExtendUntil}
+                    </p>
+                  )}
+                </div>
+              </CardFooter>
+            </Card>
+          ))
         ) : (
-          <div className="space-y-2 p-4">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
+            <div className="text-center text-muted-foreground py-4">{t('addContractsToSeePeriods')}</div>
         )}
+        <div className="mt-4">
+          <Button variant="outline" size="sm" onClick={addContract}>
+            <Plus className="mr-2 h-4 w-4" />{t('addPeriod')}
+          </Button>
+        </div>
       </CardContent>
-      {isClient && (
         <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
-          <h3 className="font-semibold text-lg">{t('calculationResults')}</h3>
+          <h3 className="font-semibold text-lg">{t('totalCalculation')}</h3>
           <div
             className={cn(
               "w-full p-4 rounded-lg transition-colors duration-300",
@@ -218,30 +285,16 @@ export function PersonCard({
               <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
                 {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed}</strong> {t('daysUsedLabel_suffix')}
               </span>
-              <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
-                 {t('daysRemainingLabel_prefix')} <strong>{remainingDays}</strong> {t('daysRemainingLabel_suffix')}
-              </span>
             </div>
             {remainingDays < 0 && (
                <>
                 <p className="text-destructive font-bold text-center mt-2">
                   {t('limitExceeded', { days: Math.abs(remainingDays) })}
                 </p>
-                {resetDate && (
-                  <p className="text-primary font-bold text-center mt-2">
-                    {t('next36MonthPeriod')} {resetDate}
-                  </p>
-                )}
                </>
-            )}
-             {remainingDays >= 0 && canExtendUntil && (
-              <p className="text-primary font-bold text-center mt-2">
-                {t('canExtendUntil')} {canExtendUntil}
-              </p>
             )}
           </div>
         </CardFooter>
-      )}
     </Card>
   );
 }
