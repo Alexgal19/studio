@@ -27,13 +27,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "./ui/skeleton";
 
-interface PersonCardProps {
-  person: Person;
-  updatePerson: (person: Person) => void;
-  removePerson: (personId: string) => void;
-  limitInDays: number;
-}
-
 const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): Period[] => {
   const sortedContracts = [...contracts]
     .filter(c => c.startDate && c.endDate && isAfter(new Date(c.endDate), new Date(c.startDate)))
@@ -44,7 +37,7 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
   if (sortedContracts.length === 0) {
       if(contractsWithoutStartDate.length > 0) {
         const period: Period = {
-            id: crypto.randomUUID(),
+            id: 'period-new',
             startDate: undefined,
             endDate: undefined,
             contracts: contractsWithoutStartDate,
@@ -115,7 +108,7 @@ const createNewPeriod = (startingContract: Contract, limitInDays: number): Perio
   const periodStartDate = new Date(startingContract.startDate!);
   const periodEndDate = addDays(addMonths(periodStartDate, 36),-1);
   return {
-    id: crypto.randomUUID(),
+    id: `period-${periodStartDate.getTime()}`,
     startDate: periodStartDate,
     endDate: periodEndDate,
     contracts: [startingContract],
