@@ -16,20 +16,20 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker>
 function CustomCaption(props: CaptionProps) {
   const { i18n } = useTranslation();
   const { goToMonth, nextMonth, previousMonth } = useNavigation();
-  const { currentMonth } = useDayPicker();
+  const { displayMonth } = props;
 
-  if (!currentMonth) {
+  if (!displayMonth) {
     return null;
   }
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newMonth = new Date(currentMonth);
+    const newMonth = new Date(displayMonth);
     newMonth.setMonth(parseInt(e.target.value, 10));
     goToMonth(newMonth);
   };
 
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newYear = new Date(currentMonth);
+    const newYear = new Date(displayMonth);
     newYear.setFullYear(parseInt(e.target.value, 10));
     goToMonth(newYear);
   };
