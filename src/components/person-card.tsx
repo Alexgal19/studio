@@ -228,7 +228,7 @@ export function PersonCard({
                   {t('limitExceeded', { days: Math.abs(remainingDays) })}
                 </p>
                 {resetDate && (
-                  <p className="text-destructive font-bold text-center mt-2">
+                  <p className="text-primary font-bold text-center mt-2">
                     {t('next36MonthPeriod')} {resetDate}
                   </p>
                 )}
