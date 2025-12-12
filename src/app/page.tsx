@@ -5,6 +5,7 @@ import { TempWorkCalculator } from '@/components/temp-work-calculator';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Home() {
   const { t, ready } = useTranslation();
@@ -18,7 +19,12 @@ export default function Home() {
     return (
       <main className="container mx-auto p-4 md:p-8">
         <div className="max-w-5xl mx-auto">
-          <Card className="overflow-hidden shadow-lg p-6">{t('loadingData')}</Card>
+          <Card className="overflow-hidden shadow-lg p-6">
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-3/4 mx-auto" />
+              <Skeleton className="h-96 w-full" />
+            </div>
+          </Card>
         </div>
       </main>
     );
