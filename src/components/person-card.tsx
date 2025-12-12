@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
-import { differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays, addDays, format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -43,6 +43,7 @@ export function PersonCard({
   const { t } = useTranslation();
   const [totalDaysUsed, setTotalDaysUsed] = useState<number>(0);
   const [remainingDays, setRemainingDays] = useState<number>(0);
+  const [canExtendUntil, setCanExtendUntil] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -62,7 +63,32 @@ export function PersonCard({
         return total;
       }, 0);
       setTotalDaysUsed(daysUsed);
-      setRemainingDays(limitInDays - daysUsed);
+      
+      const currentRemainingDays = limitInDays - daysUsed;
+      setRemainingDays(currentRemainingDays);
+
+      if (currentRemainingDays > 0) {
+        const latestEndDate = person.contracts.reduce((latest: Date | null, contract) => {
+          if (contract.endDate) {
+            const endDate = new Date(contract.endDate);
+            if (!isNaN(endDate.getTime())) {
+              if (!latest || endDate > latest) {
+                return endDate;
+              }
+            }
+          }
+          return latest;
+        }, null);
+
+        if (latestEndDate) {
+          const extendDate = addDays(latestEndDate, currentRemainingDays);
+          setCanExtendUntil(format(extendDate, "dd.MM.yyyy"));
+        } else {
+          setCanExtendUntil(null);
+        }
+      } else {
+        setCanExtendUntil(null);
+      }
     }
   }, [person.contracts, limitInDays, isClient]);
 
@@ -179,6 +205,11 @@ export function PersonCard({
             {remainingDays < 0 && (
               <p className="text-destructive font-bold text-center mt-2">
                 {t('limitExceeded', { days: Math.abs(remainingDays) })}
+              </p>
+            )}
+             {remainingDays >= 0 && canExtendUntil && (
+              <p className="text-primary font-bold text-center mt-2">
+                {t('canExtendUntil')} {canExtendUntil}
               </p>
             )}
           </div>
