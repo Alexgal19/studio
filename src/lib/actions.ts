@@ -27,7 +27,7 @@ export async function login(
   
   const { auth: adminAuth } = await import('@/lib/firebase-admin');
   if (!adminAuth) {
-    return { message: 'Usługa uwierzytelniania jest niedostępna.'}
+    return { message: 'Błąd konfiguracji serwera: usługa uwierzytelniania jest niedostępna. Skontaktuj się z administratorem.'}
   }
 
   try {
@@ -36,6 +36,9 @@ export async function login(
       return { message: 'Nieprawidłowy adres e-mail lub hasło.' };
     }
     
+    // NOTE: This is a simplified login for demonstration. 
+    // In a real app, you'd verify the password, likely on the client-side
+    // with Firebase client SDK before calling a server action to create a session.
     session.isLoggedIn = true;
     session.uid = user.uid;
     await session.save();
@@ -60,7 +63,7 @@ export async function register(
 ) {
     const { auth: adminAuth } = await import('@/lib/firebase-admin');
     if (!adminAuth) {
-      return { success: false, message: 'Usługa uwierzytelniania jest niedostępna.'}
+      return { success: false, message: 'Błąd konfiguracji serwera: usługa uwierzytelniania jest niedostępna. Skontaktuj się z administratorem.'}
     }
 
     const email = formData.get('email') as string;
