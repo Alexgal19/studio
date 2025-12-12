@@ -70,12 +70,12 @@ function LoginForm() {
       <CardContent>
         <form action={formAction} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="phone">{t('phoneNumber')}</Label>
+            <Label htmlFor="email">{t('emailAddress')}</Label>
             <Input
-              id="phone"
-              name="phone"
-              type="tel"
-              placeholder="+48 123 456 789"
+              id="email"
+              name="email"
+              type="email"
+              placeholder="jan.kowalski@example.com"
               required
             />
           </div>

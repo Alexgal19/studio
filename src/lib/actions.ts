@@ -6,13 +6,13 @@ import { redirect } from 'next/navigation';
 
 // W prawdziwej aplikacji to byłaby baza danych.
 // Używamy obiektu do symulacji przechowywania użytkowników.
-const users: { [key: string]: { phone: string; uid: string, password?: string } } = {
-    'initial-admin-user': { phone: '+48123456789', uid: 'initial-admin-user', password: 'password' }
+const users: { [key: string]: { email: string; uid: string, password?: string } } = {
+    'initial-admin-user': { email: 'admin@example.com', uid: 'initial-admin-user', password: 'password' }
 };
 
-async function findUserByPhone(phone: string) {
+async function findUserByEmail(email: string) {
     for (const uid in users) {
-        if (users[uid].phone === phone) {
+        if (users[uid].email === email) {
             return { uid, ...users[uid] };
         }
     }
@@ -24,13 +24,13 @@ export async function login(
   formData: FormData
 ) {
   const session = await getSession();
-  const phone = formData.get('phone') as string;
+  const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
-  const user = await findUserByPhone(phone);
+  const user = await findUserByEmail(email);
 
   if (!user || user.password !== password) {
-    return { success: false, message: 'Nieprawidłowy numer telefonu lub hasło.' };
+    return { success: false, message: 'Nieprawidłowy adres e-mail lub hasło.' };
   }
 
   session.isLoggedIn = true;
@@ -50,11 +50,11 @@ export async function register(
     prevState: { message: string, success?: boolean } | null,
     formData: FormData
 ) {
-    const phone = formData.get('phone') as string;
+    const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const confirmPassword = formData.get('confirmPassword') as string;
 
-    if (!phone || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword) {
         return { success: false, message: 'Wszystkie pola są wymagane.' };
     }
     
@@ -62,16 +62,16 @@ export async function register(
         return { success: false, message: 'Hasła nie są takie same.' };
     }
 
-    const existingUser = await findUserByPhone(phone);
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
-        return { success: false, message: 'Ten numer telefonu jest już zarejestrowany.' };
+        return { success: false, message: 'Ten adres e-mail jest już zarejestrowany.' };
     }
     
     // Generowanie prostego, unikalnego ID dla nowego użytkownika
     const uid = `user_${Date.now()}`;
 
     // Zapisujemy użytkownika do naszej symulowanej "bazy danych"
-    users[uid] = { phone, uid, password };
+    users[uid] = { email, uid, password };
 
     // Wylogowanie aktywnej sesji, jeśli istnieje
     const session = await getSession();
