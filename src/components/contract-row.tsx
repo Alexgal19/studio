@@ -4,25 +4,24 @@
 import type { Contract } from "@/lib/types";
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { TableCell } from "@/components/ui/table";
-import { Trash2, CalendarIcon } from "lucide-react";
-import { differenceInCalendarDays, format } from "date-fns";
-import { pl } from "date-fns/locale";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { TableCell, TableRow } from "@/components/ui/table";
+import { Trash2 } from "lucide-react";
+import { differenceInCalendarDays } from "date-fns";
 import { useTranslation } from "react-i18next";
+import { DatePickerWithManualInput } from "./date-picker-with-manual-input";
 
 interface ContractRowProps {
   contract: Contract;
   updateContract: (contract: Contract) => void;
   removeContract: (contractId: string) => void;
+  isClient: boolean;
 }
 
 export function ContractRow({
   contract,
   updateContract,
   removeContract,
+  isClient,
 }: ContractRowProps) {
   const { t } = useTranslation();
   const [daysUsed, setDaysUsed] = useState(0);
@@ -38,70 +37,24 @@ export function ContractRow({
     }
     setDaysUsed(0);
   }, [contract.startDate, contract.endDate]);
-
+  
   return (
-    <>
+    <TableRow>
       <TableCell>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-[240px] justify-start text-left font-normal",
-                !contract.startDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {contract.startDate ? (
-                format(contract.startDate, "PPP", { locale: pl })
-              ) : (
-                <span>{t('selectDate')}</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={contract.startDate}
-              onSelect={(date) =>
-                updateContract({ ...contract, startDate: date })
-              }
-              initialFocus
-              locale={pl}
-            />
-          </PopoverContent>
-        </Popover>
+        <DatePickerWithManualInput
+          value={contract.startDate}
+          onChange={(date) =>
+            updateContract({ ...contract, startDate: date })
+          }
+        />
       </TableCell>
       <TableCell>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant={"outline"}
-              className={cn(
-                "w-[240px] justify-start text-left font-normal",
-                !contract.endDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {contract.endDate ? (
-                format(contract.endDate, "PPP", { locale: pl })
-              ) : (
-                <span>{t('selectDate')}</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
-            <Calendar
-              mode="single"
-              selected={contract.endDate}
-              onSelect={(date) =>
-                updateContract({ ...contract, endDate: date })
-              }
-              initialFocus
-              locale={pl}
-            />
-          </PopoverContent>
-        </Popover>
+        <DatePickerWithManualInput
+          value={contract.endDate}
+          onChange={(date) =>
+            updateContract({ ...contract, endDate: date })
+          }
+        />
       </TableCell>
       <TableCell className="text-center font-medium">
         {daysUsed > 0 ? t('daysUnit', { count: daysUsed }) : "-"}
@@ -116,6 +69,6 @@ export function ContractRow({
           <span className="sr-only">{t('removePeriod')}</span>
         </Button>
       </TableCell>
-    </>
+    </TableRow>
   );
 }

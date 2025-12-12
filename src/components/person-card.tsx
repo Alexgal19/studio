@@ -41,8 +41,8 @@ export function PersonCard({
   limitInDays,
 }: PersonCardProps) {
   const { t } = useTranslation();
-  const [totalDaysUsed, setTotalDaysUsed] = useState<number | null>(null);
-  const [remainingDays, setRemainingDays] = useState<number | null>(null);
+  const [totalDaysUsed, setTotalDaysUsed] = useState<number>(0);
+  const [remainingDays, setRemainingDays] = useState<number>(0);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -93,39 +93,13 @@ export function PersonCard({
     updatePerson({ ...person, contracts: updatedContracts });
   };
   
-  if (!isClient) {
-    return (
-      <Card className="overflow-hidden shadow-lg">
-        <CardHeader className="flex flex-row items-center justify-between bg-card">
-          <CardTitle className="flex-grow">
-            <Skeleton className="h-9 w-3/4" />
-          </CardTitle>
-           <Skeleton className="h-9 w-9" />
-        </CardHeader>
-        <CardContent>
-           <div className="space-y-2 p-4">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        </CardContent>
-        <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
-          <Skeleton className="h-6 w-1/3 mb-2" />
-          <div className="w-full p-4 rounded-lg bg-muted/50">
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </CardFooter>
-      </Card>
-    );
-  }
-
-
   return (
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader className="flex flex-row items-center justify-between bg-card">
         <CardTitle className="flex-grow">
           <Input
             placeholder={t('personNamePlaceholder')}
-            value={person.fullName}
+            value={isClient ? person.fullName : ""}
             onChange={handleNameChange}
             className="text-lg font-semibold border-0 focus-visible:ring-1 focus-visible:ring-ring"
           />
@@ -136,71 +110,81 @@ export function PersonCard({
         </Button>
       </CardHeader>
       <CardContent>
-        <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('startDate')}</TableHead>
-                <TableHead>{t('endDate')}</TableHead>
-                <TableHead className="text-center">{t('usedDays')}</TableHead>
-                <TableHead className="text-right">{t('action')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <AnimatePresence>
-                {person.contracts.map((contract) => (
-                  <motion.tr
-                    key={contract.id}
-                    layout="position"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="w-full"
-                    as="tr"
-                  >
-                    <ContractRow
-                      contract={contract}
-                      updateContract={updateContract}
-                      removeContract={removeContract}
-                    />
-                  </motion.tr>
-                ))}
-              </AnimatePresence>
-            </TableBody>
-          </Table>
-          <div className="mt-4">
-            <Button variant="outline" size="sm" onClick={addContract}>
-              <Plus className="mr-2 h-4 w-4" />{t('addPeriod')}
-            </Button>
+        {isClient ? (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('startDate')}</TableHead>
+                  <TableHead>{t('endDate')}</TableHead>
+                  <TableHead className="text-center">{t('usedDays')}</TableHead>
+                  <TableHead className="text-right">{t('action')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <AnimatePresence>
+                  {person.contracts.map((contract) => (
+                    <motion.tr
+                      key={contract.id}
+                      layout="position"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="w-full"
+                      as={TableRow}
+                    >
+                      <ContractRow
+                        contract={contract}
+                        updateContract={updateContract}
+                        removeContract={removeContract}
+                        isClient={isClient}
+                      />
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </TableBody>
+            </Table>
+            <div className="mt-4">
+              <Button variant="outline" size="sm" onClick={addContract}>
+                <Plus className="mr-2 h-4 w-4" />{t('addPeriod')}
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="space-y-2 p-4">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
           </div>
-        </>
+        )}
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
-        <h3 className="font-semibold text-lg">{t('calculationResults')}</h3>
-        <div
-          className={cn(
-            "w-full p-4 rounded-lg transition-colors duration-300",
-            remainingDays !== null && remainingDays >= 0
-              ? "bg-primary/10"
-              : "bg-destructive/10 text-destructive"
-          )}
-        >
-          <div className="flex justify-between items-center">
-            <span className={cn(remainingDays !== null && remainingDays >= 0 ? "text-primary" : "text-destructive")}>
-              {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed ?? '-'}</strong> {t('daysUsedLabel_suffix')}
-            </span>
-            <span className={cn(remainingDays !== null && remainingDays >= 0 ? "text-primary" : "text-destructive")}>
-               {t('daysRemainingLabel_prefix')} <strong>{remainingDays ?? '-'}</strong> {t('daysRemainingLabel_suffix')}
-            </span>
+      {isClient && (
+        <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
+          <h3 className="font-semibold text-lg">{t('calculationResults')}</h3>
+          <div
+            className={cn(
+              "w-full p-4 rounded-lg transition-colors duration-300",
+              remainingDays >= 0
+                ? "bg-primary/10"
+                : "bg-destructive/10 text-destructive"
+            )}
+          >
+            <div className="flex justify-between items-center">
+              <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+                {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed}</strong> {t('daysUsedLabel_suffix')}
+              </span>
+              <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+                 {t('daysRemainingLabel_prefix')} <strong>{remainingDays}</strong> {t('daysRemainingLabel_suffix')}
+              </span>
+            </div>
+            {remainingDays < 0 && (
+              <p className="text-destructive font-bold text-center mt-2">
+                {t('limitExceeded', { days: Math.abs(remainingDays) })}
+              </p>
+            )}
           </div>
-          {remainingDays !== null && remainingDays < 0 && (
-            <p className="text-destructive font-bold text-center mt-2">
-              {t('limitExceeded', { days: Math.abs(remainingDays) })}
-            </p>
-          )}
-        </div>
-      </CardFooter>
+        </CardFooter>
+      )}
     </Card>
   );
 }
