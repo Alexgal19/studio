@@ -175,7 +175,8 @@ export function PersonCard({
         setTotalDaysUsed(0);
         setRemainingDays(limitInDays);
     }
-  }, [person.contracts, limitInDays]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [limitInDays, JSON.stringify(person.contracts)]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updatePerson({ ...person, fullName: e.target.value });
