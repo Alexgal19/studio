@@ -22,7 +22,6 @@ export function ContractRow({
   contract,
   updateContract,
   removeContract,
-  isClient,
 }: ContractRowProps) {
   const { t } = useTranslation();
   const [daysUsed, setDaysUsed] = useState(0);
