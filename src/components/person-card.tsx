@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
-import { differenceInCalendarDays, addDays, format } from "date-fns";
+import { differenceInCalendarDays, addDays, format, addMonths } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -44,6 +44,7 @@ export function PersonCard({
   const [totalDaysUsed, setTotalDaysUsed] = useState<number>(0);
   const [remainingDays, setRemainingDays] = useState<number>(0);
   const [canExtendUntil, setCanExtendUntil] = useState<string | null>(null);
+  const [resetDate, setResetDate] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -67,7 +68,8 @@ export function PersonCard({
       const currentRemainingDays = limitInDays - daysUsed;
       setRemainingDays(currentRemainingDays);
 
-      if (currentRemainingDays > 0) {
+      if (currentRemainingDays >= 0) {
+        setResetDate(null);
         const latestEndDate = person.contracts.reduce((latest: Date | null, contract) => {
           if (contract.endDate) {
             const endDate = new Date(contract.endDate);
@@ -88,6 +90,24 @@ export function PersonCard({
         }
       } else {
         setCanExtendUntil(null);
+        const firstStartDate = person.contracts.reduce((earliest: Date | null, contract) => {
+          if(contract.startDate){
+            const startDate = new Date(contract.startDate);
+            if (!isNaN(startDate.getTime())) {
+              if (!earliest || startDate < earliest) {
+                return startDate;
+              }
+            }
+          }
+          return earliest;
+        }, null);
+
+        if(firstStartDate) {
+          const newPeriodStartDate = addDays(addMonths(firstStartDate, 36), 1);
+          setResetDate(format(newPeriodStartDate, "dd.MM.yyyy"));
+        } else {
+          setResetDate(null);
+        }
       }
     }
   }, [person.contracts, limitInDays, isClient]);
@@ -203,9 +223,16 @@ export function PersonCard({
               </span>
             </div>
             {remainingDays < 0 && (
-              <p className="text-destructive font-bold text-center mt-2">
-                {t('limitExceeded', { days: Math.abs(remainingDays) })}
-              </p>
+               <>
+                <p className="text-destructive font-bold text-center mt-2">
+                  {t('limitExceeded', { days: Math.abs(remainingDays) })}
+                </p>
+                {resetDate && (
+                  <p className="text-destructive font-bold text-center mt-2">
+                    {t('next36MonthPeriod')} {resetDate}
+                  </p>
+                )}
+               </>
             )}
              {remainingDays >= 0 && canExtendUntil && (
               <p className="text-primary font-bold text-center mt-2">
