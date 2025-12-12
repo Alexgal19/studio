@@ -2,11 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Person } from "@/lib/types";
+import type { Person, SavedSession } from "@/lib/types";
 import { PersonCard } from "./person-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Download, Plus, Trash2 } from "lucide-react";
+import { Download, Plus, Trash2, BookUser } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { usePWAInstaller } from "./pwa-installer";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "./ui/skeleton";
+import { useSessionManager } from "@/hooks/use-session-manager";
+import { SessionManager } from "./session-manager";
 
 export function TempWorkCalculator() {
   const { t, ready } = useTranslation();
@@ -25,41 +27,27 @@ export function TempWorkCalculator() {
   const [limitInDays, setLimitInDays] = useState<number>(548);
   const { installPrompt, handleInstallClick } = usePWAInstaller();
   const [isClient, setIsClient] = useState(false);
+  const [isSessionManagerOpen, setSessionManagerOpen] = useState(false);
+
+  const { sessions, saveSession, loadSession, deleteSession, clearAllSessions } = useSessionManager({
+    onLoad: (sessionState) => {
+      setPersons(sessionState.persons);
+      setLimitInDays(sessionState.limitInDays);
+    }
+  });
 
   useEffect(() => {
     setIsClient(true);
-    if (typeof window !== 'undefined') {
-      try {
-        const savedState = localStorage.getItem("tempWorkCalculatorState");
-        if (savedState) {
-          const { persons: savedPersons, limitInDays: savedLimit } = JSON.parse(savedState);
-          const restoredPersons = savedPersons.map((person: Person) => ({
-            ...person,
-            contracts: person.contracts.map(contract => ({
-              ...contract,
-              startDate: contract.startDate ? new Date(contract.startDate) : undefined,
-              endDate: contract.endDate ? new Date(contract.endDate) : undefined,
-            }))
-          }));
-          setPersons(restoredPersons);
-          setLimitInDays(savedLimit || 548);
-        }
-      } catch (error) {
-        console.error("Failed to load state from localStorage", error);
-        setPersons([]);
-        setLimitInDays(548);
-      }
+    const initialSession = loadSession('__last_active__');
+    if (initialSession) {
+      setPersons(initialSession.persons);
+      setLimitInDays(initialSession.limitInDays);
     }
   }, []);
 
   useEffect(() => {
     if (isClient) {
-      try {
-        const stateToSave = JSON.stringify({ persons, limitInDays });
-        localStorage.setItem("tempWorkCalculatorState", stateToSave);
-      } catch (error) {
-        console.error("Failed to save state to localStorage", error);
-      }
+      saveSession('__last_active__', { persons, limitInDays });
     }
   }, [persons, limitInDays, isClient]);
 
@@ -103,6 +91,7 @@ export function TempWorkCalculator() {
         <div className="flex flex-wrap gap-4 items-center justify-center">
           <Skeleton className="h-10 w-32" />
           <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-40" />
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-20" />
             <Skeleton className="h-10 w-[120px]" />
@@ -125,6 +114,9 @@ export function TempWorkCalculator() {
       <div className="flex flex-wrap gap-4 items-center justify-center">
         <Button onClick={addPerson}>
           <Plus className="mr-2" />{t('addPerson')}
+        </Button>
+        <Button variant="outline" onClick={() => setSessionManagerOpen(true)}>
+          <BookUser className="mr-2" /> {t('manageSessions')}
         </Button>
         {installPrompt && (
           <Button variant="secondary" onClick={handleInstallClick}>
@@ -175,6 +167,22 @@ export function TempWorkCalculator() {
           ))}
         </div>
       </AnimatePresence>
+      
+      <SessionManager
+        isOpen={isSessionManagerOpen}
+        onOpenChange={setSessionManagerOpen}
+        sessions={sessions.filter(s => s.name !== '__last_active__')}
+        onSave={(name) => saveSession(name, { persons, limitInDays })}
+        onLoad={(name) => {
+          const session = loadSession(name);
+          if (session) {
+            setPersons(session.persons);
+            setLimitInDays(session.limitInDays);
+            setSessionManagerOpen(false);
+          }
+        }}
+        onDelete={deleteSession}
+      />
     </div>
   );
 }

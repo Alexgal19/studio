@@ -20,3 +20,14 @@ export interface Period {
   canExtendUntil?: string | null;
   resetDate?: string | null;
 }
+
+export interface AppState {
+  persons: Person[];
+  limitInDays: number;
+}
+
+export interface SavedSession {
+  name: string;
+  state: AppState;
+  savedAt: string;
+}
