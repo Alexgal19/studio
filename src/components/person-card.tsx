@@ -35,18 +35,24 @@ interface PersonCardProps {
 }
 
 const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): Period[] => {
-  if (contracts.length === 0) {
-    return [];
-  }
-
   const sortedContracts = [...contracts]
-    .sort((a, b) => {
-        if (!a.startDate) return 1;
-        if (!b.startDate) return -1;
-        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
-    });
+    .filter(c => c.startDate && c.endDate && isAfter(new Date(c.endDate), new Date(c.startDate)))
+    .sort((a, b) => new Date(a.startDate!).getTime() - new Date(b.startDate!).getTime());
+    
+  const contractsWithoutStartDate = contracts.filter(c => !c.startDate || !c.endDate || !isAfter(new Date(c.endDate), new Date(c.startDate)));
 
   if (sortedContracts.length === 0) {
+      if(contractsWithoutStartDate.length > 0) {
+        const period: Period = {
+            id: crypto.randomUUID(),
+            startDate: undefined,
+            endDate: undefined,
+            contracts: contractsWithoutStartDate,
+            totalDaysUsed: 0,
+            remainingDays: limitInDays,
+          };
+          return [period];
+      }
     return [];
   }
 
@@ -54,83 +60,82 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
   let currentPeriod: Period | null = null;
 
   for (const contract of sortedContracts) {
-    if (!contract.startDate) {
-        if (currentPeriod) {
-            currentPeriod.contracts.push(contract);
-        } else {
-             const periodStartDate = new Date();
-             const periodEndDate = addDays(addMonths(periodStartDate, 36),-1);
-              currentPeriod = {
-                id: crypto.randomUUID(),
-                startDate: undefined,
-                endDate: undefined,
-                contracts: [contract],
-                totalDaysUsed: 0,
-                remainingDays: limitInDays,
-              };
-              periods.push(currentPeriod);
-        }
-        continue;
-    }
-
-    if (!currentPeriod || isAfter(new Date(contract.startDate), new Date(currentPeriod.endDate!))) {
-      const periodStartDate = new Date(contract.startDate);
-      const periodEndDate = addDays(addMonths(periodStartDate, 36),-1);
-      
-      currentPeriod = {
-        id: crypto.randomUUID(),
-        startDate: periodStartDate,
-        endDate: periodEndDate,
-        contracts: [contract],
-        totalDaysUsed: 0,
-        remainingDays: limitInDays,
-      };
+    if (!currentPeriod) {
+      currentPeriod = createNewPeriod(contract, limitInDays);
       periods.push(currentPeriod);
     } else {
-      currentPeriod.contracts.push(contract);
+      // Recalculate days used for the current period before deciding to create a new one
+      const currentDaysUsed = calculateDaysUsed(currentPeriod.contracts);
+      currentPeriod.totalDaysUsed = currentDaysUsed;
+      currentPeriod.remainingDays = limitInDays - currentDaysUsed;
+
+      if (currentPeriod.remainingDays < 0 || isAfter(new Date(contract.startDate!), new Date(currentPeriod.endDate!))) {
+        currentPeriod = createNewPeriod(contract, limitInDays);
+        periods.push(currentPeriod);
+      } else {
+        currentPeriod.contracts.push(contract);
+      }
     }
   }
 
-  // Calculate days for each period
+  // Final calculation and processing for all periods
   periods.forEach(period => {
-    const daysUsed = period.contracts.reduce((total, contract) => {
-      if (contract.startDate && contract.endDate) {
-        const start = new Date(contract.startDate);
-        const end = new Date(contract.endDate);
-        if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
-          return total + differenceInCalendarDays(end, start) + 1;
-        }
-      }
-      return total;
-    }, 0);
-
+    const daysUsed = calculateDaysUsed(period.contracts);
     period.totalDaysUsed = daysUsed;
     period.remainingDays = limitInDays - daysUsed;
 
     if (period.remainingDays >= 0) {
       const latestEndDate = period.contracts.reduce((latest: Date | null, contract) => {
-        if (contract.endDate) {
-          const endDate = new Date(contract.endDate);
-          if (!isNaN(endDate.getTime()) && (!latest || endDate > latest)) {
-            return endDate;
-          }
-        }
-        return latest;
+        const endDate = new Date(contract.endDate!);
+        return !latest || endDate > latest ? endDate : latest;
       }, null);
-
       if (latestEndDate) {
         period.canExtendUntil = format(addDays(latestEndDate, period.remainingDays), "dd.MM.yyyy");
       }
     } else {
         if(period.startDate) {
-            const newPeriodStartDate = addDays(addMonths(period.startDate, 36), 1);
+            const newPeriodStartDate = addDays(addMonths(period.startDate, 36), 0); // Corrected to 0 days from 1
             period.resetDate = format(newPeriodStartDate, "dd.MM.yyyy");
         }
     }
   });
 
+  if (contractsWithoutStartDate.length > 0) {
+    const lastPeriod = periods[periods.length - 1];
+    if (lastPeriod) {
+        lastPeriod.contracts.push(...contractsWithoutStartDate);
+    }
+  }
+
+
   return periods;
 };
+
+const createNewPeriod = (startingContract: Contract, limitInDays: number): Period => {
+  const periodStartDate = new Date(startingContract.startDate!);
+  const periodEndDate = addDays(addMonths(periodStartDate, 36),-1);
+  return {
+    id: crypto.randomUUID(),
+    startDate: periodStartDate,
+    endDate: periodEndDate,
+    contracts: [startingContract],
+    totalDaysUsed: 0,
+    remainingDays: limitInDays,
+  };
+};
+
+const calculateDaysUsed = (contracts: Contract[]): number => {
+    return contracts.reduce((total, contract) => {
+        if (contract.startDate && contract.endDate) {
+          const start = new Date(contract.startDate);
+          const end = new Date(contract.endDate);
+          if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && isAfter(end, start)) {
+            return total + differenceInCalendarDays(end, start) + 1;
+          }
+        }
+        return total;
+      }, 0);
+}
 
 
 export function PersonCard({
@@ -145,13 +150,21 @@ export function PersonCard({
   const [periods, setPeriods] = useState<Period[]>([]);
 
   useEffect(() => {
+    const allContractsHaveDates = person.contracts.every(c => c.startDate && c.endDate);
+
     if (person.contracts.length > 0) {
         const groupedPeriods = groupContractsIntoPeriods(person.contracts, limitInDays);
         setPeriods(groupedPeriods);
 
-        const totalDays = groupedPeriods.reduce((sum, period) => sum + period.totalDaysUsed, 0);
-        setTotalDaysUsed(totalDays);
-        setRemainingDays(limitInDays - totalDays);
+        if(allContractsHaveDates) {
+            const totalDays = groupedPeriods.reduce((sum, period) => sum + period.totalDaysUsed, 0);
+            setTotalDaysUsed(totalDays);
+            setRemainingDays(limitInDays - totalDays); // This might not be logical anymore if periods reset limit.
+        } else {
+            const totalDays = calculateDaysUsed(person.contracts);
+            setTotalDaysUsed(totalDays);
+            setRemainingDays(limitInDays - totalDays);
+        }
     } else {
         setPeriods([]);
         setTotalDaysUsed(0);
@@ -200,13 +213,13 @@ export function PersonCard({
           <span className="sr-only">{t('removePerson')}</span>
         </Button>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-4">
         {periods.length > 0 ? (
           periods.map((period, index) => (
             <Card key={period.id} className="bg-muted/20">
               <CardHeader>
                 <CardTitle className="text-lg">
-                  {t('period')} {index + 1}: {period.startDate ? format(period.startDate, 'dd.MM.yyyy') : ''} - {period.endDate ? format(period.endDate, 'dd.MM.yyyy') : ''}
+                  {t('period')} {index + 1}: {period.startDate ? format(period.startDate, 'dd.MM.yyyy') : t('newContracts')} - {period.endDate ? format(period.endDate, 'dd.MM.yyyy') : ''}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -250,7 +263,7 @@ export function PersonCard({
                     "w-full p-3 rounded-lg text-sm",
                     period.remainingDays >= 0
                       ? "bg-primary/10"
-                      : "bg-destructive/10 text-destructive"
+                      : "bg-destructive/10"
                   )}
                 >
                   <div className="flex justify-between items-center">
@@ -296,27 +309,16 @@ export function PersonCard({
           <div
             className={cn(
               "w-full p-4 rounded-lg transition-colors duration-300",
-              remainingDays >= 0
-                ? "bg-primary/10"
-                : "bg-destructive/10 text-destructive"
+               "bg-primary/10"
             )}
           >
             <div className="flex justify-between items-center">
-              <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
-                {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed}</strong> {t('daysUsedLabel_suffix')}
+              <span className="text-primary">
+                {t('totalDaysUsedLabel')} <strong>{totalDaysUsed}</strong>
               </span>
             </div>
-            {remainingDays < 0 && (
-               <>
-                <p className="text-destructive font-bold text-center mt-2">
-                  {t('limitExceeded', { days: Math.abs(remainingDays) })}
-                </p>
-               </>
-            )}
           </div>
         </CardFooter>
     </Card>
   );
 }
-
-    
