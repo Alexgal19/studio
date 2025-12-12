@@ -52,12 +52,10 @@ function RegisterForm() {
   }, [state, router]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && recaptchaContainerRef.current) {
-        if (!window.recaptchaVerifier) {
-            window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
-                'size': 'invisible',
-            });
-        }
+    if (recaptchaContainerRef.current && !window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
+            'size': 'invisible',
+        });
     }
   }, []);
   
