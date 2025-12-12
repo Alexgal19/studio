@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Trash2 } from "lucide-react";
-import { differenceInCalendarDays, addDays, format, addMonths, isBefore, isAfter } from "date-fns";
+import { differenceInCalendarDays, addDays, format, addMonths, isAfter } from "date-fns";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -40,8 +40,11 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
   }
 
   const sortedContracts = [...contracts]
-    .filter(c => c.startDate)
-    .sort((a, b) => new Date(a.startDate!).getTime() - new Date(b.startDate!).getTime());
+    .sort((a, b) => {
+        if (!a.startDate) return 1;
+        if (!b.startDate) return -1;
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+    });
 
   if (sortedContracts.length === 0) {
     return [];
@@ -51,7 +54,24 @@ const groupContractsIntoPeriods = (contracts: Contract[], limitInDays: number): 
   let currentPeriod: Period | null = null;
 
   for (const contract of sortedContracts) {
-    if (!contract.startDate) continue;
+    if (!contract.startDate) {
+        if (currentPeriod) {
+            currentPeriod.contracts.push(contract);
+        } else {
+             const periodStartDate = new Date();
+             const periodEndDate = addDays(addMonths(periodStartDate, 36),-1);
+              currentPeriod = {
+                id: crypto.randomUUID(),
+                startDate: undefined,
+                endDate: undefined,
+                contracts: [contract],
+                totalDaysUsed: 0,
+                remainingDays: limitInDays,
+              };
+              periods.push(currentPeriod);
+        }
+        continue;
+    }
 
     if (!currentPeriod || isAfter(new Date(contract.startDate), new Date(currentPeriod.endDate!))) {
       const periodStartDate = new Date(contract.startDate);
@@ -298,3 +318,5 @@ export function PersonCard({
     </Card>
   );
 }
+
+    
