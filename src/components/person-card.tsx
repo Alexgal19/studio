@@ -152,35 +152,35 @@ export function PersonCard({
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 bg-muted/50 p-4">
         <h3 className="font-semibold text-lg">{t('calculationResults')}</h3>
-        {totalDaysUsed !== null && remainingDays !== null ? (
-          <div
-            className={cn(
-              "w-full p-4 rounded-lg transition-colors duration-300",
-              remainingDays >= 0
-                ? "bg-primary/10 text-primary-foreground"
-                : "bg-destructive/10 text-destructive"
-            )}
-          >
-            <div className="flex justify-between items-center">
-              <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
-                {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed}</strong> {t('daysUsedLabel_suffix')}
-              </span>
-              <span className={cn(remainingDays >= 0 ? "text-primary" : "text-destructive")}>
-                 {t('daysRemainingLabel_prefix')} <strong>{remainingDays}</strong> {t('daysRemainingLabel_suffix')}
-              </span>
-            </div>
-            {remainingDays < 0 && (
-              <p className="text-destructive font-bold text-center mt-2">
-                {t('limitExceeded', { days: Math.abs(remainingDays) })}
-              </p>
-            )}
-          </div>
-        ) : (
+        {!isClient ? (
           <div className="w-full p-4 rounded-lg bg-muted/50">
             <div className="flex justify-between items-center">
               <span>-</span>
               <span>-</span>
             </div>
+          </div>
+        ) : (
+          <div
+            className={cn(
+              "w-full p-4 rounded-lg transition-colors duration-300",
+              remainingDays !== null && remainingDays >= 0
+                ? "bg-primary/10 text-primary-foreground"
+                : "bg-destructive/10 text-destructive"
+            )}
+          >
+            <div className="flex justify-between items-center">
+              <span className={cn(remainingDays !== null && remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+                {t('daysUsedLabel_prefix')} <strong>{totalDaysUsed ?? '-'}</strong> {t('daysUsedLabel_suffix')}
+              </span>
+              <span className={cn(remainingDays !== null && remainingDays >= 0 ? "text-primary" : "text-destructive")}>
+                 {t('daysRemainingLabel_prefix')} <strong>{remainingDays ?? '-'}</strong> {t('daysRemainingLabel_suffix')}
+              </span>
+            </div>
+            {remainingDays !== null && remainingDays < 0 && (
+              <p className="text-destructive font-bold text-center mt-2">
+                {t('limitExceeded', { days: Math.abs(remainingDays) })}
+              </p>
+            )}
           </div>
         )}
       </CardFooter>
