@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import type { Person, SavedSession } from "@/lib/types";
+import type { Person } from "@/lib/types";
 import { PersonCard } from "./person-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,12 +29,7 @@ export function TempWorkCalculator() {
   const [isClient, setIsClient] = useState(false);
   const [isSessionManagerOpen, setSessionManagerOpen] = useState(false);
 
-  const { sessions, saveSession, loadSession, deleteSession, clearAllSessions } = useSessionManager({
-    onLoad: (sessionState) => {
-      setPersons(sessionState.persons);
-      setLimitInDays(sessionState.limitInDays);
-    }
-  });
+  const { sessions, saveSession, loadSession, deleteSession } = useSessionManager();
 
   useEffect(() => {
     setIsClient(true);
@@ -44,7 +39,7 @@ export function TempWorkCalculator() {
       setLimitInDays(initialSession.limitInDays);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadSession]);
+  }, []);
 
   useEffect(() => {
     if (isClient) {

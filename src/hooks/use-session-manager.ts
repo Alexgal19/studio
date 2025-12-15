@@ -6,11 +6,7 @@ import type { AppState, SavedSession } from '@/lib/types';
 
 const SESSIONS_STORAGE_KEY = 'tempWorkCalculatorSessions';
 
-interface UseSessionManagerProps {
-  onLoad: (state: AppState) => void;
-}
-
-export function useSessionManager({ onLoad }: UseSessionManagerProps) {
+export function useSessionManager() {
   const [sessions, setSessions] = useState<SavedSession[]>([]);
 
   useEffect(() => {
@@ -68,7 +64,7 @@ export function useSessionManager({ onLoad }: UseSessionManagerProps) {
   const loadSession = useCallback((name: string): AppState | null => {
     const sessionToLoad = sessions.find(s => s.name === name);
     if (sessionToLoad) {
-      const restoredState = {
+      const restoredState: AppState = {
         ...sessionToLoad.state,
         persons: sessionToLoad.state.persons.map(person => ({
           ...person,
@@ -79,14 +75,10 @@ export function useSessionManager({ onLoad }: UseSessionManagerProps) {
           }))
         }))
       };
-
-      if (name !== '__last_active__') {
-        onLoad(restoredState);
-      }
       return restoredState;
     }
     return null;
-  }, [sessions, onLoad]);
+  }, [sessions]);
 
   const deleteSession = useCallback((name: string) => {
     const updatedSessions = sessions.filter(s => s.name !== name);
