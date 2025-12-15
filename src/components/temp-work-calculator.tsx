@@ -43,6 +43,7 @@ export function TempWorkCalculator() {
       setPersons(initialSession.persons);
       setLimitInDays(initialSession.limitInDays);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadSession]);
 
   useEffect(() => {

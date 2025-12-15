@@ -55,18 +55,35 @@ export function useSessionManager({ onLoad }: UseSessionManagerProps) {
       state,
       savedAt: new Date().toISOString(),
     };
-    const otherSessions = sessions.filter(s => s.name !== name);
-    const updatedSessions = [...otherSessions, newSession].sort((a, b) => a.name.localeCompare(b.name));
-    persistSessions(updatedSessions);
-  }, [sessions, persistSessions]);
+    
+    setSessions(prevSessions => {
+        const otherSessions = prevSessions.filter(s => s.name !== name);
+        const updatedSessions = [...otherSessions, newSession].sort((a, b) => a.name.localeCompare(b.name));
+        persistSessions(updatedSessions);
+        return updatedSessions;
+    });
+
+  }, [persistSessions]);
 
   const loadSession = useCallback((name: string): AppState | null => {
-    const session = sessions.find(s => s.name === name);
-    if (session) {
+    const sessionToLoad = sessions.find(s => s.name === name);
+    if (sessionToLoad) {
+      const restoredState = {
+        ...sessionToLoad.state,
+        persons: sessionToLoad.state.persons.map(person => ({
+          ...person,
+          contracts: person.contracts.map(contract => ({
+            ...contract,
+            startDate: contract.startDate ? new Date(contract.startDate) : undefined,
+            endDate: contract.endDate ? new Date(contract.endDate) : undefined,
+          }))
+        }))
+      };
+
       if (name !== '__last_active__') {
-        onLoad(session.state);
+        onLoad(restoredState);
       }
-      return session.state;
+      return restoredState;
     }
     return null;
   }, [sessions, onLoad]);
