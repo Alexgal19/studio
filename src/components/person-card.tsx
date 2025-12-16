@@ -64,7 +64,6 @@ const groupContractsIntoPeriods = (personId: string, contracts: Contract[], limi
       currentPeriod = createNewPeriod(contract, limitInDays);
       periods.push(currentPeriod);
     } else {
-      // Create a new period only if the contract starts after the current 36-month period ends.
       if (isAfter(new Date(contract.startDate!), new Date(currentPeriod.endDate!))) {
         currentPeriod = createNewPeriod(contract, limitInDays);
         periods.push(currentPeriod);
